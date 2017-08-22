@@ -34,6 +34,12 @@ var ADVERTISEMENTS_DATA = {
   guestsRangeTo: 15
 };
 
+var LODGE_TYPES_RELATIONS = {
+  flat: 'Квартира',
+  house: 'Дом',
+  bungalo: 'Бунгало'
+};
+
 // Функция нахождения случайного целого числа в заданном диапазоне включительно
 var getRandomInRange = function (min, max) {
   return Math.floor(Math.random() * (max - min + 1)) + min;
@@ -82,16 +88,13 @@ var renderAd = function (ad) {
 
 // Функция, переводящая тип апартаментов в удобочитаемый вид
 var getProperLodgeType = function (type) {
+  var lodgeTypes = Object.keys(LODGE_TYPES_RELATIONS);
   var properType;
-  if (type === 'flat') {
-    properType = 'Квартира';
-  } else if (type === 'bungalo') {
-    properType = 'Бунгало';
-  } else if (type === 'house') {
-    properType = 'Дом';
-  } else {
-    properType = type;
-  }
+  lodgeTypes.forEach(function (item) {
+    if (type === item) {
+      properType = LODGE_TYPES_RELATIONS[item];
+    }
+  });
   return properType;
 };
 
