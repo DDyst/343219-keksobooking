@@ -6,178 +6,70 @@ var panelTemplate = document.getElementById('lodge-template').content;
 var map = document.querySelector('.tokyo__pin-map');
 var dialogBlock = document.getElementById('offer-dialog');
 
-// Массив с данными объявлений
-var advertisements = [
-  {
-    author: {
-      avatar: 'img/avatars/user01.png'
-    },
-    offer: {
-      title: 'Большая уютная квартира',
-      address: '350, 128',
-      price: 12700,
-      type: 'flat',
-      rooms: 3,
-      guests: 5,
-      checkin: '12:00',
-      checkout: '13.00',
-      features: ['wifi', 'dishwasher', 'parking', 'washer', 'elevator', 'conditioner'],
-      description: '',
-      photos: []
-    },
-    location: {
-      x: 350,
-      y: 128
-    }
-  }, {
-    author: {
-      avatar: 'img/avatars/user02.png'
-    },
-    offer: {
-      title: 'Маленькая неуютная квартира',
-      address: '710, 190',
-      price: 6200,
-      type: 'flat',
-      rooms: 1,
-      guests: 2,
-      checkin: '12:00',
-      checkout: '14.00',
-      features: ['washer'],
-      description: '',
-      photos: []
-    },
-    location: {
-      x: 710,
-      y: 190
-    }
-  }, {
-    author: {
-      avatar: 'img/avatars/user03.png'
-    },
-    offer: {
-      title: 'Огромный прекрасный дворец',
-      address: '450, 365',
-      price: 89900,
-      type: 'house',
-      rooms: 12,
-      guests: 22,
-      checkin: '14:00',
-      checkout: '12.00',
-      features: ['wifi', 'dishwasher', 'parking', 'washer', 'conditioner'],
-      description: '',
-      photos: []
-    },
-    location: {
-      x: 450,
-      y: 365
-    }
-  }, {
-    author: {
-      avatar: 'img/avatars/user04.png'
-    },
-    offer: {
-      title: 'Маленький ужасный дворец',
-      address: '630, 430',
-      price: 24500,
-      type: 'house',
-      rooms: 5,
-      guests: 8,
-      checkin: '13:00',
-      checkout: '14.00',
-      features: ['dishwasher', 'parking', 'washer'],
-      description: '',
-      photos: []
-    },
-    location: {
-      x: 630,
-      y: 430
-    }
-  }, {
-    author: {
-      avatar: 'img/avatars/user05.png'
-    },
-    offer: {
-      title: 'Красивый гостевой домик',
-      address: '310, 490',
-      price: 19800,
-      type: 'house',
-      rooms: 4,
-      guests: 8,
-      checkin: '14:00',
-      checkout: '13.00',
-      features: ['wifi', 'parking', 'washer', 'conditioner'],
-      description: '',
-      photos: []
-    },
-    location: {
-      x: 310,
-      y: 490
-    }
-  }, {
-    author: {
-      avatar: 'img/avatars/user06.png'
-    },
-    offer: {
-      title: 'Некрасивый негостеприимный домик',
-      address: '865, 470',
-      price: 13500,
-      type: 'house',
-      rooms: 3,
-      guests: 6,
-      checkin: '12:00',
-      checkout: '13.00',
-      features: ['washer'],
-      description: '',
-      photos: []
-    },
-    location: {
-      x: 865,
-      y: 470
-    }
-  }, {
-    author: {
-      avatar: 'img/avatars/user07.png'
-    },
-    offer: {
-      title: 'Уютное бунгало далеко от моря',
-      address: '880, 322',
-      price: 10300,
-      type: 'bungalo',
-      rooms: 1,
-      guests: 2,
-      checkin: '14:00',
-      checkout: '12.00',
-      features: ['dishwasher', 'washer', 'conditioner'],
-      description: '',
-      photos: []
-    },
-    location: {
-      x: 880,
-      y: 322
-    }
-  }, {
-    author: {
-      avatar: 'img/avatars/user08.png'
-    },
-    offer: {
-      title: 'Неуютное бунгало по колено в воде',
-      address: '500, 190',
-      price: 14400,
-      type: 'bungalo',
-      rooms: 1,
-      guests: 2,
-      checkin: '14:00',
-      checkout: '12.00',
-      features: ['washer'],
-      description: '',
-      photos: []
-    },
-    location: {
-      x: 500,
-      y: 190
-    }
+// Объект с настройками массива объявлений
+var ADVERTISEMENTS_DATA = {
+  adsNumber: 8,
+  titles: [
+    'Большая уютная квартира',
+    'Маленькая неуютная квартира',
+    'Огромный прекрасный дворец',
+    'Маленький ужасный дворец',
+    'Красивый гостевой домик',
+    'Некрасивый негостеприимный домик',
+    'Уютное бунгало далеко от моря',
+    'Неуютное бунгало по колено в воде'
+  ],
+  types: ['flat', 'house', 'bungalo'],
+  checkinTimes: ['12:00', '13:00', '14:00'],
+  features: ['wifi', 'dishwasher', 'parking', 'washer', 'elevator', 'conditioner'],
+  xRangeFrom: 300,
+  xRangeTo: 900,
+  yRangeFrom: 100,
+  yRangeTo: 500,
+  priceRangeFrom: 1000,
+  priceRangeTo: 1000000,
+  roomsRangeFrom: 1,
+  roomsRangeTo: 5,
+  guestsRangeFrom: 1,
+  guestsRangeTo: 15
+};
+
+// Функция нахождения случайного целого числа в заданном диапазоне включительно
+var getRandomInRange = function (min, max) {
+  return Math.floor(Math.random() * (max - min + 1)) + min;
+};
+
+// Фукнция, генерирующая массив объектов на основе значений из переданного в неё объекта
+var generateArr = function (data) {
+  var newArray = [];
+  for (var i = 0; i < data.adsNumber; i++) {
+    var x = getRandomInRange(data.xRangeFrom, data.xRangeTo);
+    var y = getRandomInRange(data.yRangeFrom, data.yRangeTo);
+    newArray[i] = {
+      author: {
+        avatar: 'img/avatars/user0' + (i + 1) + '.png'
+      },
+      offer: {
+        title: data.titles[i],
+        address: x + ', ' + y,
+        price: getRandomInRange(data.priceRangeFrom, data.priceRangeTo),
+        type: data.types[getRandomInRange(0, data.types.length - 1)],
+        rooms: getRandomInRange(data.roomsRangeFrom, data.roomsRangeTo),
+        guests: getRandomInRange(data.guestsRangeFrom, data.guestsRangeTo),
+        checkin: data.checkinTimes[getRandomInRange(0, data.checkinTimes.length - 1)],
+        checkout: data.checkinTimes[getRandomInRange(0, data.checkinTimes.length - 1)],
+        features: data.features.slice(getRandomInRange(0, data.features.length - 1)),
+        description: '',
+        photos: []
+      },
+      location: {
+        x: x,
+        y: y
+      }
+    };
   }
-];
+  return newArray;
+};
 
 // Функция отрисовки объявления на карте
 var renderAd = function (ad) {
@@ -227,6 +119,8 @@ var renderDialogPanel = function (obj) {
   dialogBlock.replaceChild(panelElement, dialogBlock.querySelector('.dialog__panel'));
   dialogBlock.querySelector('.dialog__title img').src = obj.author.avatar;
 };
+
+var advertisements = generateArr(ADVERTISEMENTS_DATA);
 
 // Отрисовываем все объявления из массива
 var fragment = document.createDocumentFragment();
