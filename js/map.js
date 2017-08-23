@@ -2,13 +2,11 @@
 
 'use strict';
 
-var panelTemplate = document.getElementById('lodge-template').content;
-var map = document.querySelector('.tokyo__pin-map');
-var dialogBlock = document.getElementById('offer-dialog');
-
 // Объект с настройками массива объявлений
 var ADVERTISEMENTS_DATA = {
-  adsNumber: 8,
+  quantity: 8,
+  elementWidth: 56,
+  elementHeight: 75,
   titles: [
     'Большая уютная квартира',
     'Маленькая неуютная квартира',
@@ -34,24 +32,48 @@ var ADVERTISEMENTS_DATA = {
   guestsRangeTo: 15
 };
 
+// Объект с соотношением типа апартаментов и соответствующей ему строки
 var LODGE_TYPES_RELATIONS = {
   flat: 'Квартира',
   house: 'Дом',
   bungalo: 'Бунгало'
 };
 
+var panelTemplate = document.getElementById('lodge-template').content;
+var map = document.querySelector('.tokyo__pin-map');
+var dialogBlock = document.getElementById('offer-dialog');
+
 // Функция нахождения случайного целого числа в заданном диапазоне включительно
 var getRandomInRange = function (min, max) {
   return Math.floor(Math.random() * (max - min + 1)) + min;
 };
 
+// Функция нахождения координаты левого верхнего угла по X, принимает координату острого конца метки
+var getProperXCoord = function (xCoord) {
+  return xCoord - ADVERTISEMENTS_DATA.elementWidth / 2;
+};
+
+// Функция нахождения координаты левого верхнего угла по Y, принимает координату острого конца метки
+var getProperYCoord = function (yCoord) {
+  return yCoord - ADVERTISEMENTS_DATA.elementHeight;
+};
+
+// Функция, возвращающая массив случайной длины (но не менее 1) случайных элементов переданного массива
+var getRandomArrayItems = function (arr) {
+  var copiedItems = arr.slice();
+  for (var i = 0; i < getRandomInRange(0, arr.length - 1); i++) {
+    copiedItems.splice(getRandomInRange(0, copiedItems.length - 1), 1);
+  }
+  return copiedItems;
+};
+
 // Фукнция, генерирующая массив объектов на основе значений из переданного в неё объекта
-var generateArr = function (data) {
-  var newArray = [];
-  for (var i = 0; i < data.adsNumber; i++) {
+var generateAdvertisements = function (data) {
+  var generatedAdvertisements = [];
+  for (var i = 0; i < data.quantity; i++) {
     var x = getRandomInRange(data.xRangeFrom, data.xRangeTo);
     var y = getRandomInRange(data.yRangeFrom, data.yRangeTo);
-    newArray[i] = {
+    generatedAdvertisements[i] = {
       author: {
         avatar: 'img/avatars/user0' + (i + 1) + '.png'
       },
@@ -64,7 +86,7 @@ var generateArr = function (data) {
         guests: getRandomInRange(data.guestsRangeFrom, data.guestsRangeTo),
         checkin: data.checkinTimes[getRandomInRange(0, data.checkinTimes.length - 1)],
         checkout: data.checkinTimes[getRandomInRange(0, data.checkinTimes.length - 1)],
-        features: data.features.slice(getRandomInRange(0, data.features.length - 1)),
+        features: getRandomArrayItems(data.features),
         description: '',
         photos: []
       },
@@ -74,28 +96,22 @@ var generateArr = function (data) {
       }
     };
   }
-  return newArray;
+  return generatedAdvertisements;
 };
 
 // Функция отрисовки объявления на карте
-var renderAd = function (ad) {
-  var adElement = document.createElement('div');
-  adElement.className = 'pin';
-  adElement.style.cssText = 'left: ' + ad.location.x + 'px; top: ' + ad.location.y + 'px';
-  adElement.innerHTML = '<img src="' + ad.author.avatar + '" class="rounded" width="40" height="40">';
-  return adElement;
+var renderAdvertisement = function (advertisement) {
+  var advertisementElement = document.createElement('div');
+  advertisementElement.className = 'pin';
+  advertisementElement.style.left = getProperXCoord(advertisement.location.x) + 'px';
+  advertisementElement.style.top = getProperYCoord(advertisement.location.y) + 'px';
+  advertisementElement.innerHTML = '<img src="' + advertisement.author.avatar + '" class="rounded" width="40" height="40">';
+  return advertisementElement;
 };
 
 // Функция, переводящая тип апартаментов в удобочитаемый вид
 var getProperLodgeType = function (type) {
-  var lodgeTypes = Object.keys(LODGE_TYPES_RELATIONS);
-  var properType;
-  lodgeTypes.forEach(function (item) {
-    if (type === item) {
-      properType = LODGE_TYPES_RELATIONS[item];
-    }
-  });
-  return properType;
+  return LODGE_TYPES_RELATIONS[type];
 };
 
 // Функция для преобразования строк из массива в пустые спаны с соответствующим классом
@@ -123,12 +139,12 @@ var renderDialogPanel = function (obj) {
   dialogBlock.querySelector('.dialog__title img').src = obj.author.avatar;
 };
 
-var advertisements = generateArr(ADVERTISEMENTS_DATA);
+var advertisements = generateAdvertisements(ADVERTISEMENTS_DATA);
 
 // Отрисовываем все объявления из массива
 var fragment = document.createDocumentFragment();
 advertisements.forEach(function (item) {
-  fragment.appendChild(renderAd(item));
+  fragment.appendChild(renderAdvertisement(item));
 });
 map.appendChild(fragment);
 
