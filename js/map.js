@@ -2,6 +2,13 @@
 
 'use strict';
 
+var KEYCODES = {
+  esc: 27,
+  enter: 13
+};
+
+var TABINDEX_SOURCE_ORDER_VALUE = 0;
+
 // Объект с настройками массива объявлений
 var ADVERTISEMENTS_DATA = {
   quantity: 8,
@@ -42,6 +49,15 @@ var LODGE_TYPES_RELATIONS = {
 var panelTemplate = document.getElementById('lodge-template').content;
 var map = document.querySelector('.tokyo__pin-map');
 var dialogBlock = document.getElementById('offer-dialog');
+var dialogClose = dialogBlock.querySelector('.dialog__close');
+
+// Функция сравнения переданного кода с кодом нажатой клавиши
+var compareKeyCodes = function (event, code) {
+  if (event.keyCode === code) {
+    return true;
+  }
+  return false;
+};
 
 // Функция нахождения случайного целого числа в заданном диапазоне включительно
 var getRandomInRange = function (min, max) {
@@ -58,11 +74,26 @@ var getProperYCoord = function (yCoord) {
   return yCoord - ADVERTISEMENTS_DATA.elementHeight;
 };
 
-// Функция, возвращающая массив случайной длины (но не менее 1) случайных элементов переданного массива
-var getRandomArrayItems = function (arr) {
-  var copiedItems = arr.slice();
-  for (var i = 0; i < getRandomInRange(0, arr.length - 1); i++) {
-    copiedItems.splice(getRandomInRange(0, copiedItems.length - 1), 1);
+// Функция, возвращающая индекс случайного элемента массива
+var getRandomArrayItemIndex = function (array) {
+  return getRandomInRange(0, array.length - 1);
+};
+
+// Функция, возвращающая случайный элемент массива
+var getRandomArrayItem = function (array) {
+  return array[getRandomInRange(0, array.length - 1)];
+};
+
+// Функция, удаляющая случайный элемент массива
+var deleteRandomArrayItem = function (array) {
+  array.splice(getRandomArrayItemIndex(array), 1);
+};
+
+// Функция, возвращающая массив случайной длины (но не менее 1) из случайных элементов переданного в неё массива
+var getRandomArrayItems = function (array) {
+  var copiedItems = array.slice();
+  for (var i = 0; i < getRandomArrayItemIndex(array); i++) {
+    deleteRandomArrayItem(copiedItems);
   }
   return copiedItems;
 };
@@ -81,11 +112,11 @@ var generateAdvertisements = function (data) {
         title: data.titles[i],
         address: x + ', ' + y,
         price: getRandomInRange(data.priceRangeFrom, data.priceRangeTo),
-        type: data.types[getRandomInRange(0, data.types.length - 1)],
+        type: getRandomArrayItem(data.types),
         rooms: getRandomInRange(data.roomsRangeFrom, data.roomsRangeTo),
         guests: getRandomInRange(data.guestsRangeFrom, data.guestsRangeTo),
-        checkin: data.checkinTimes[getRandomInRange(0, data.checkinTimes.length - 1)],
-        checkout: data.checkinTimes[getRandomInRange(0, data.checkinTimes.length - 1)],
+        checkin: getRandomArrayItem(data.checkinTimes),
+        checkout: getRandomArrayItem(data.checkinTimes),
         features: getRandomArrayItems(data.features),
         description: '',
         photos: []
@@ -105,6 +136,7 @@ var renderAdvertisement = function (advertisement) {
   advertisementElement.className = 'pin';
   advertisementElement.style.left = getProperXCoord(advertisement.location.x) + 'px';
   advertisementElement.style.top = getProperYCoord(advertisement.location.y) + 'px';
+  advertisementElement.tabIndex = TABINDEX_SOURCE_ORDER_VALUE;
   advertisementElement.innerHTML = '<img src="' + advertisement.author.avatar + '" class="rounded" width="40" height="40">';
   return advertisementElement;
 };
@@ -139,6 +171,40 @@ var renderDialogPanel = function (obj) {
   dialogBlock.querySelector('.dialog__title img').src = obj.author.avatar;
 };
 
+// Функция закрытия диалоговой панели объявления
+var closePanel = function () {
+  dialogBlock.classList.add('hidden');
+  map.querySelector('.pin--active').classList.remove('pin--active');
+};
+
+// Функция, подсвечивающая активируемую метку объявления и открывающая соответствующую ей диалоговую панель
+var activatePin = function (targetElement) {
+  var target = targetElement;
+  while (target !== map) {
+    if (target.classList.contains('pin') && !target.classList.contains('pin__main')) {
+      if (map.querySelector('.pin--active')) {
+        if (map.querySelector('.pin--active') === target) {
+          return;
+        }
+        map.querySelector('.pin--active').classList.remove('pin--active');
+      }
+      target.classList.add('pin--active');
+      var elementIndex;
+      advertisements.forEach(function (item, index) {
+        if (target.firstChild.getAttribute('src') === item.author.avatar) {
+          elementIndex = index;
+        }
+      });
+      renderDialogPanel(advertisements[elementIndex]);
+      if (dialogBlock.classList.contains('hidden')) {
+        dialogBlock.classList.remove('hidden');
+      }
+      return;
+    }
+    target = target.parentNode;
+  }
+};
+
 var advertisements = generateAdvertisements(ADVERTISEMENTS_DATA);
 
 // Отрисовываем все объявления из массива
@@ -149,3 +215,29 @@ advertisements.forEach(function (item) {
 map.appendChild(fragment);
 
 renderDialogPanel(advertisements[0]);
+
+map.addEventListener('click', function (event) {
+  activatePin(event.target);
+});
+
+map.addEventListener('keydown', function (event) {
+  if (compareKeyCodes(event, KEYCODES.enter)) {
+    activatePin(event.target);
+  }
+});
+
+dialogClose.addEventListener('click', function () {
+  closePanel();
+});
+
+dialogClose.addEventListener('keydown', function (event) {
+  if (compareKeyCodes(event, KEYCODES.enter)) {
+    closePanel();
+  }
+});
+
+document.addEventListener('keydown', function (event) {
+  if (compareKeyCodes(event, KEYCODES.esc) && !dialogBlock.classList.contains('hidden')) {
+    closePanel();
+  }
+});
