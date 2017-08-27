@@ -2,19 +2,19 @@
 
 'use strict';
 
-var KEYCODES = {
-  esc: 27,
-  enter: 13
+var keyCodes = {
+  ESC: 27,
+  ENTER: 13
 };
 
 var TABINDEX_SOURCE_ORDER_VALUE = 0;
 
 // Объект с настройками массива объявлений
-var ADVERTISEMENTS_DATA = {
-  quantity: 8,
-  elementWidth: 56,
-  elementHeight: 75,
-  titles: [
+var advertisementsData = {
+  QUANTITY: 8,
+  ELEMENT_WIDTH: 56,
+  ELEMENT_HEIGHT: 75,
+  TITLES: [
     'Большая уютная квартира',
     'Маленькая неуютная квартира',
     'Огромный прекрасный дворец',
@@ -24,39 +24,36 @@ var ADVERTISEMENTS_DATA = {
     'Уютное бунгало далеко от моря',
     'Неуютное бунгало по колено в воде'
   ],
-  types: ['flat', 'house', 'bungalo'],
-  checkinTimes: ['12:00', '13:00', '14:00'],
-  features: ['wifi', 'dishwasher', 'parking', 'washer', 'elevator', 'conditioner'],
-  xRangeFrom: 300,
-  xRangeTo: 900,
-  yRangeFrom: 100,
-  yRangeTo: 500,
-  priceRangeFrom: 1000,
-  priceRangeTo: 1000000,
-  roomsRangeFrom: 1,
-  roomsRangeTo: 5,
-  guestsRangeFrom: 1,
-  guestsRangeTo: 15
+  TYPES: ['flat', 'house', 'bungalo'],
+  CHECKIN_TIMES: ['12:00', '13:00', '14:00'],
+  FEATURES: ['wifi', 'dishwasher', 'parking', 'washer', 'elevator', 'conditioner'],
+  X_RANGE_FROM: 300,
+  X_RANGE_TO: 900,
+  Y_RANGE_FROM: 100,
+  Y_RANGE_TO: 500,
+  PRICE_RANGE_FROM: 1000,
+  PRICE_RANGE_TO: 1000000,
+  ROOMS_RANGE_FROM: 1,
+  ROOMS_RANGE_TO: 5,
+  GUESTS_RANGE_FROM: 1,
+  GUESTS_RANGE_TO: 15
 };
 
 // Объект с соотношением типа апартаментов и соответствующей ему строки
-var LODGE_TYPES_RELATIONS = {
-  flat: 'Квартира',
-  house: 'Дом',
-  bungalo: 'Бунгало'
+var lodgeTypesRelations = {
+  FLAT: 'Квартира',
+  HOUSE: 'Дом',
+  BUNGALO: 'Бунгало'
 };
 
-var panelTemplate = document.getElementById('lodge-template').content;
-var map = document.querySelector('.tokyo__pin-map');
-var dialogBlock = document.getElementById('offer-dialog');
-var dialogClose = dialogBlock.querySelector('.dialog__close');
+// Функция, сравнивающая значение переданного кода клавиши с кодом Esc
+var isEscPressed = function (code) {
+  return code === keyCodes.ESC;
+};
 
-// Функция сравнения переданного кода с кодом нажатой клавиши
-var compareKeyCodes = function (event, code) {
-  if (event.keyCode === code) {
-    return true;
-  }
-  return false;
+// Функция, сравнивающая значение переданного кода клавиши с кодом Enter
+var isEnterPressed = function (code) {
+  return code === keyCodes.ENTER;
 };
 
 // Функция нахождения случайного целого числа в заданном диапазоне включительно
@@ -66,12 +63,12 @@ var getRandomInRange = function (min, max) {
 
 // Функция нахождения координаты левого верхнего угла по X, принимает координату острого конца метки
 var getProperXCoord = function (xCoord) {
-  return xCoord - ADVERTISEMENTS_DATA.elementWidth / 2;
+  return xCoord - advertisementsData.ELEMENT_WIDTH / 2;
 };
 
 // Функция нахождения координаты левого верхнего угла по Y, принимает координату острого конца метки
 var getProperYCoord = function (yCoord) {
-  return yCoord - ADVERTISEMENTS_DATA.elementHeight;
+  return yCoord - advertisementsData.ELEMENT_HEIGHT;
 };
 
 // Функция, возвращающая индекс случайного элемента массива
@@ -101,23 +98,23 @@ var getRandomArrayItems = function (array) {
 // Фукнция, генерирующая массив объектов на основе значений из переданного в неё объекта
 var generateAdvertisements = function (data) {
   var generatedAdvertisements = [];
-  for (var i = 0; i < data.quantity; i++) {
-    var x = getRandomInRange(data.xRangeFrom, data.xRangeTo);
-    var y = getRandomInRange(data.yRangeFrom, data.yRangeTo);
+  for (var i = 0; i < data.QUANTITY; i++) {
+    var x = getRandomInRange(data.X_RANGE_FROM, data.X_RANGE_TO);
+    var y = getRandomInRange(data.Y_RANGE_FROM, data.Y_RANGE_TO);
     generatedAdvertisements[i] = {
       author: {
         avatar: 'img/avatars/user0' + (i + 1) + '.png'
       },
       offer: {
-        title: data.titles[i],
+        title: data.TITLES[i],
         address: x + ', ' + y,
-        price: getRandomInRange(data.priceRangeFrom, data.priceRangeTo),
-        type: getRandomArrayItem(data.types),
-        rooms: getRandomInRange(data.roomsRangeFrom, data.roomsRangeTo),
-        guests: getRandomInRange(data.guestsRangeFrom, data.guestsRangeTo),
-        checkin: getRandomArrayItem(data.checkinTimes),
-        checkout: getRandomArrayItem(data.checkinTimes),
-        features: getRandomArrayItems(data.features),
+        price: getRandomInRange(data.PRICE_RANGE_FROM, data.PRICE_RANGE_TO),
+        type: getRandomArrayItem(data.TYPES),
+        rooms: getRandomInRange(data.ROOMS_RANGE_FROM, data.ROOMS_RANGE_TO),
+        guests: getRandomInRange(data.GUESTS_RANGE_FROM, data.GUESTS_RANGE_TO),
+        checkin: getRandomArrayItem(data.CHECKIN_TIMES),
+        checkout: getRandomArrayItem(data.CHECKIN_TIMES),
+        features: getRandomArrayItems(data.FEATURES),
         description: '',
         photos: []
       },
@@ -143,7 +140,7 @@ var renderAdvertisement = function (advertisement) {
 
 // Функция, переводящая тип апартаментов в удобочитаемый вид
 var getProperLodgeType = function (type) {
-  return LODGE_TYPES_RELATIONS[type];
+  return lodgeTypesRelations[type.toUpperCase()];
 };
 
 // Функция для преобразования строк из массива в пустые спаны с соответствующим классом
@@ -174,41 +171,89 @@ var renderDialogPanel = function (obj) {
 // Функция закрытия диалоговой панели объявления
 var closePanel = function () {
   dialogBlock.classList.add('hidden');
-  map.querySelector('.pin--active').classList.remove('pin--active');
+  if (map.querySelector('.pin--active')) {
+    map.querySelector('.pin--active').classList.remove('pin--active');
+  }
+};
+
+// Функция, определяющая соответствие между меткой объявления и элементом массива, и отрисовывающая соответствующую диалоговую панель
+var renderProperPanel = function (pinElement) {
+  advertisements.forEach(function (item, index) {
+    if (pinElement.firstChild.getAttribute('src') === item.author.avatar) {
+      renderDialogPanel(advertisements[index]);
+      return;
+    }
+  });
+};
+
+// Функция, убирающая у элемента переданный класс при его наличии
+var removeClassIfExists = function (element, className) {
+  if (element.classList.contains(className)) {
+    element.classList.remove(className);
+  }
+};
+
+// Функция, переключающая активную метку объявления, при условии, что выбранная метка уже не является активной
+var switchPin = function (pinElement) {
+  var activePin = map.querySelector('.pin--active');
+  if (activePin) {
+    if (activePin === pinElement) {
+      return;
+    }
+    activePin.classList.remove('pin--active');
+  } else {
+    removeClassIfExists(dialogBlock, 'hidden');
+  }
+  pinElement.classList.add('pin--active');
+  renderProperPanel(pinElement);
 };
 
 // Функция, подсвечивающая активируемую метку объявления и открывающая соответствующую ей диалоговую панель
-var activatePin = function (targetElement) {
-  var target = targetElement;
+var activatePinAndPanel = function (target) {
   while (target !== map) {
     if (target.classList.contains('pin') && !target.classList.contains('pin__main')) {
-      if (map.querySelector('.pin--active')) {
-        if (map.querySelector('.pin--active') === target) {
-          return;
-        }
-        map.querySelector('.pin--active').classList.remove('pin--active');
-      }
-      target.classList.add('pin--active');
-      var elementIndex;
-      advertisements.forEach(function (item, index) {
-        if (target.firstChild.getAttribute('src') === item.author.avatar) {
-          elementIndex = index;
-        }
-      });
-      renderDialogPanel(advertisements[elementIndex]);
-      if (dialogBlock.classList.contains('hidden')) {
-        dialogBlock.classList.remove('hidden');
-      }
+      switchPin(target);
       return;
     }
     target = target.parentNode;
   }
 };
 
-var advertisements = generateAdvertisements(ADVERTISEMENTS_DATA);
+// Обработчики событий
+var mapClickHandler = function (evt) {
+  activatePinAndPanel(evt.target);
+};
+
+var mapKeyDownHandler = function (evt) {
+  if (isEnterPressed(evt.keyCode)) {
+    activatePinAndPanel(evt.target);
+  }
+};
+
+var dialogCloseClickHandler = function () {
+  closePanel();
+};
+
+var dialogCloseKeyDownHandler = function (evt) {
+  if (isEnterPressed(evt.keyCode)) {
+    closePanel();
+  }
+};
+
+var keyDownHandler = function (evt) {
+  if (isEscPressed(evt.keyCode) && !dialogBlock.classList.contains('hidden')) {
+    closePanel();
+  }
+};
+
+var panelTemplate = document.getElementById('lodge-template').content;
+var map = document.querySelector('.tokyo__pin-map');
+var dialogBlock = document.getElementById('offer-dialog');
+var dialogClose = dialogBlock.querySelector('.dialog__close');
+var advertisements = generateAdvertisements(advertisementsData);
+var fragment = document.createDocumentFragment();
 
 // Отрисовываем все объявления из массива
-var fragment = document.createDocumentFragment();
 advertisements.forEach(function (item) {
   fragment.appendChild(renderAdvertisement(item));
 });
@@ -216,28 +261,8 @@ map.appendChild(fragment);
 
 renderDialogPanel(advertisements[0]);
 
-map.addEventListener('click', function (event) {
-  activatePin(event.target);
-});
-
-map.addEventListener('keydown', function (event) {
-  if (compareKeyCodes(event, KEYCODES.enter)) {
-    activatePin(event.target);
-  }
-});
-
-dialogClose.addEventListener('click', function () {
-  closePanel();
-});
-
-dialogClose.addEventListener('keydown', function (event) {
-  if (compareKeyCodes(event, KEYCODES.enter)) {
-    closePanel();
-  }
-});
-
-document.addEventListener('keydown', function (event) {
-  if (compareKeyCodes(event, KEYCODES.esc) && !dialogBlock.classList.contains('hidden')) {
-    closePanel();
-  }
-});
+map.addEventListener('click', mapClickHandler);
+map.addEventListener('keydown', mapKeyDownHandler);
+dialogClose.addEventListener('click', dialogCloseClickHandler);
+dialogClose.addEventListener('keydown', dialogCloseKeyDownHandler);
+document.addEventListener('keydown', keyDownHandler);
