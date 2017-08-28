@@ -144,8 +144,8 @@ var getProperLodgeType = function (type) {
 };
 
 // Функция для преобразования строк из массива в пустые спаны с соответствующим классом
-var parseFeatures = function (arr) {
-  arr.forEach(function (item) {
+var parseFeatures = function (array) {
+  array.forEach(function (item) {
     var featureElement = document.createElement('span');
     featureElement.className = 'feature__image feature__image--' + item;
     fragment.appendChild(featureElement);
@@ -154,58 +154,52 @@ var parseFeatures = function (arr) {
 };
 
 // Функция отрисовки диалоговой панели объявления
-var renderDialogPanel = function (obj) {
+var renderDialogPanel = function (advertisementItem) {
   var panelElement = panelTemplate.querySelector('.dialog__panel').cloneNode(true);
-  panelElement.querySelector('.lodge__title').textContent = obj.offer.title;
-  panelElement.querySelector('.lodge__address').textContent = obj.offer.address;
-  panelElement.querySelector('.lodge__price').innerHTML = obj.offer.price + '&#x20bd;/ночь';
-  panelElement.querySelector('.lodge__type').textContent = getProperLodgeType(obj.offer.type);
-  panelElement.querySelector('.lodge__rooms-and-guests').textContent = 'Для ' + obj.offer.guests + ' гостей в ' + obj.offer.rooms + ' комнатах';
-  panelElement.querySelector('.lodge__checkin-time').textContent = 'Заезд после ' + obj.offer.checkin + ', выезд до ' + obj.offer.checkout;
-  panelElement.querySelector('.lodge__features').appendChild(parseFeatures(obj.offer.features));
-  panelElement.querySelector('.lodge__description').textContent = obj.offer.description;
+  panelElement.querySelector('.lodge__title').textContent = advertisementItem.offer.title;
+  panelElement.querySelector('.lodge__address').textContent = advertisementItem.offer.address;
+  panelElement.querySelector('.lodge__price').innerHTML = advertisementItem.offer.price + '&#x20bd;/ночь';
+  panelElement.querySelector('.lodge__type').textContent = getProperLodgeType(advertisementItem.offer.type);
+  panelElement.querySelector('.lodge__rooms-and-guests').textContent = 'Для ' + advertisementItem.offer.guests + ' гостей в ' + advertisementItem.offer.rooms + ' комнатах';
+  panelElement.querySelector('.lodge__checkin-time').textContent = 'Заезд после ' + advertisementItem.offer.checkin + ', выезд до ' + advertisementItem.offer.checkout;
+  panelElement.querySelector('.lodge__features').appendChild(parseFeatures(advertisementItem.offer.features));
+  panelElement.querySelector('.lodge__description').textContent = advertisementItem.offer.description;
   dialogBlock.replaceChild(panelElement, dialogBlock.querySelector('.dialog__panel'));
-  dialogBlock.querySelector('.dialog__title img').src = obj.author.avatar;
+  dialogBlock.querySelector('.dialog__title img').src = advertisementItem.author.avatar;
+};
+
+// Функция, снимающая выделение с метки объявления
+var deactivatePin = function () {
+  activePin.classList.remove('pin--active');
+  activePin = false;
 };
 
 // Функция закрытия диалоговой панели объявления
 var closePanel = function () {
   dialogBlock.classList.add('hidden');
-  if (map.querySelector('.pin--active')) {
-    map.querySelector('.pin--active').classList.remove('pin--active');
-  }
 };
 
 // Функция, определяющая соответствие между меткой объявления и элементом массива, и отрисовывающая соответствующую диалоговую панель
 var renderProperPanel = function (pinElement) {
-  advertisements.forEach(function (item, index) {
-    if (pinElement.firstChild.getAttribute('src') === item.author.avatar) {
-      renderDialogPanel(advertisements[index]);
-      return;
+  for (var i = 0; i < advertisements.length; i++) {
+    if (pinElement.firstChild.getAttribute('src') === advertisements[i].author.avatar) {
+      renderDialogPanel(advertisements[i]);
+      break;
     }
-  });
-};
-
-// Функция, убирающая у элемента переданный класс при его наличии
-var removeClassIfExists = function (element, className) {
-  if (element.classList.contains(className)) {
-    element.classList.remove(className);
   }
 };
 
 // Функция, переключающая активную метку объявления, при условии, что выбранная метка уже не является активной
 var switchPin = function (pinElement) {
-  var activePin = map.querySelector('.pin--active');
-  if (activePin) {
-    if (activePin === pinElement) {
-      return;
+  if (!activePin || activePin !== pinElement) {
+    if (activePin) {
+      activePin.classList.remove('pin--active');
+    } else {
+      dialogBlock.classList.remove('hidden');
     }
-    activePin.classList.remove('pin--active');
-  } else {
-    removeClassIfExists(dialogBlock, 'hidden');
+    pinElement.classList.add('pin--active');
+    activePin = pinElement;
   }
-  pinElement.classList.add('pin--active');
-  renderProperPanel(pinElement);
 };
 
 // Функция, подсвечивающая активируемую метку объявления и открывающая соответствующую ей диалоговую панель
@@ -213,7 +207,8 @@ var activatePinAndPanel = function (target) {
   while (target !== map) {
     if (target.classList.contains('pin') && !target.classList.contains('pin__main')) {
       switchPin(target);
-      return;
+      renderProperPanel(target);
+      break;
     }
     target = target.parentNode;
   }
@@ -232,17 +227,20 @@ var mapKeyDownHandler = function (evt) {
 
 var dialogCloseClickHandler = function () {
   closePanel();
+  deactivatePin();
 };
 
 var dialogCloseKeyDownHandler = function (evt) {
   if (isEnterPressed(evt.keyCode)) {
     closePanel();
+    deactivatePin();
   }
 };
 
 var keyDownHandler = function (evt) {
   if (isEscPressed(evt.keyCode) && !dialogBlock.classList.contains('hidden')) {
     closePanel();
+    deactivatePin();
   }
 };
 
@@ -252,6 +250,7 @@ var dialogBlock = document.getElementById('offer-dialog');
 var dialogClose = dialogBlock.querySelector('.dialog__close');
 var advertisements = generateAdvertisements(advertisementsData);
 var fragment = document.createDocumentFragment();
+var activePin = false;
 
 // Отрисовываем все объявления из массива
 advertisements.forEach(function (item) {
@@ -259,7 +258,7 @@ advertisements.forEach(function (item) {
 });
 map.appendChild(fragment);
 
-renderDialogPanel(advertisements[0]);
+dialogBlock.classList.add('hidden');
 
 map.addEventListener('click', mapClickHandler);
 map.addEventListener('keydown', mapKeyDownHandler);
