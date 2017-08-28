@@ -251,6 +251,7 @@ var dialogClose = dialogBlock.querySelector('.dialog__close');
 var advertisements = generateAdvertisements(advertisementsData);
 var fragment = document.createDocumentFragment();
 var activePin = false;
+// var advertisementForm = document.querySelector('.notice__form');
 
 // Отрисовываем все объявления из массива
 advertisements.forEach(function (item) {
