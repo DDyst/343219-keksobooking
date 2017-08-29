@@ -2,12 +2,13 @@
 
 'use strict';
 
+var TABINDEX_SOURCE_ORDER_VALUE = 0;
+
+// Объект со значениями кодов клавиш
 var keyCodes = {
   ESC: 27,
   ENTER: 13
 };
-
-var TABINDEX_SOURCE_ORDER_VALUE = 0;
 
 // Объект с настройками массива объявлений
 var advertisementsData = {
@@ -44,6 +45,29 @@ var lodgeTypesRelations = {
   FLAT: 'Квартира',
   HOUSE: 'Дом',
   BUNGALO: 'Бунгало'
+};
+
+// Объект со значениями атрибутов полей формы
+var formFieldsData = {
+  TITLE_MIN_LENGTH: 30,
+  TITLE_MAX_LENGTH: 100,
+  PRICE_MIN_VALUE: 0,
+  PRICE_MAX_VALUE: 1000000,
+  PRICE_INITIAL_VALUE: '1000'
+};
+
+// Объект с соотношением типа апартаментов и минимальной цены при размещении объявления
+var typeToPriceRatio = {
+  BUNGALO: 0,
+  FLAT: 1000,
+  HOUSE: 5000,
+  PALACE: 10000
+};
+
+// Объект со значениями атрибута value для опций выпадающих списков, соответствующих апартаментам, не предназначенным для гостей
+var nonGuestsValue = {
+  ROOMS: '100',
+  CAPACITY: '0'
 };
 
 // Функция, сравнивающая значение переданного кода клавиши с кодом Esc
@@ -214,6 +238,86 @@ var activatePinAndPanel = function (target) {
   }
 };
 
+// Функция, устанавливающая изначальные значения атрибутов полей формы
+var setInitialInputAttributes = function () {
+  addressInput.required = true;
+  titleInput.minLength = formFieldsData.TITLE_MIN_LENGTH;
+  titleInput.maxLength = formFieldsData.TITLE_MAX_LENGTH;
+  titleInput.required = true;
+  priceInput.min = formFieldsData.PRICE_MIN_VALUE;
+  priceInput.max = formFieldsData.PRICE_MAX_VALUE;
+  priceInput.value = formFieldsData.PRICE_INITIAL_VALUE;
+  priceInput.required = true;
+  adjustPrice();
+  adjustCapacity();
+};
+
+// Функция для снятия disabled у элементов списка
+var cleanDisabledOptions = function (select) {
+  for (var i = 0; i < select.options.length; i++) {
+    select.options[i].disabled = false;
+  }
+};
+
+// Функция переключения атрибута disabled
+var toggleDisabled = function (element) {
+  element.disabled = element.disabled ? false : true;
+};
+
+// Функция сравнения значений value у выбранной пользователем опции количества комнат и опций числа гостей
+var isCapacityValueBiggerThanRooms = function (index) {
+  return parseInt(capacityInput.options[index].value, 10) > parseInt(roomsInput.value, 10);
+};
+
+// Функция синхронизации полей времени заезда и выезда
+var adjustTime = function (target) {
+  if (target === timeInInput) {
+    timeOutInput.value = target.value;
+  } else {
+    timeInInput.value = target.value;
+  }
+};
+
+// Функция синхронизации полей типа апартаментов и минимальной цены
+var adjustPrice = function () {
+  priceInput.min = typeToPriceRatio[typeInput.value.toUpperCase()];
+};
+
+// Функция синхронизации полей количества комнат и числа гостей
+var adjustCapacity = function () {
+  for (var i = 0; i < capacityInput.options.length; i++) {
+    if (isCapacityValueBiggerThanRooms(i) || capacityInput.options[i].value === nonGuestsValue.CAPACITY) {
+      capacityInput.options[i].disabled = true;
+    }
+    if (roomsInput.value === nonGuestsValue.ROOMS) {
+      toggleDisabled(capacityInput.options[i]);
+    }
+    if (roomsInput.value !== nonGuestsValue.ROOMS) {
+      capacityInput.value = roomsInput.value;
+    } else {
+      capacityInput.value = nonGuestsValue.CAPACITY;
+    }
+  }
+  // if (roomsInput.value === '1') {
+  //   capacityInput.options[0].disabled = true;
+  //   capacityInput.options[1].disabled = true;
+  //   capacityInput.options[3].disabled = true;
+  //   capacityInput.value = roomsInput.value;
+  // } else if (roomsInput.value === '2') {
+  //   capacityInput.options[0].disabled = true;
+  //   capacityInput.options[3].disabled = true;
+  //   capacityInput.value = roomsInput.value;
+  // } else if (roomsInput.value === '3') {
+  //   capacityInput.options[3].disabled = true;
+  //   capacityInput.value = roomsInput.value;
+  // } else {
+  //   capacityInput.options[0].disabled = true;
+  //   capacityInput.options[1].disabled = true;
+  //   capacityInput.options[2].disabled = true;
+  //   capacityInput.value = '0';
+  // }
+};
+
 // Обработчики событий
 var mapClickHandler = function (evt) {
   activatePinAndPanel(evt.target);
@@ -244,6 +348,19 @@ var keyDownHandler = function (evt) {
   }
 };
 
+var timeInputHandler = function (evt) {
+  adjustTime(evt.target);
+};
+
+var typeInputHandler = function () {
+  adjustPrice();
+};
+
+var roomsInputHandler = function () {
+  cleanDisabledOptions(capacityInput);
+  adjustCapacity();
+};
+
 var panelTemplate = document.getElementById('lodge-template').content;
 var map = document.querySelector('.tokyo__pin-map');
 var dialogBlock = document.getElementById('offer-dialog');
@@ -251,7 +368,15 @@ var dialogClose = dialogBlock.querySelector('.dialog__close');
 var advertisements = generateAdvertisements(advertisementsData);
 var fragment = document.createDocumentFragment();
 var activePin = false;
-// var advertisementForm = document.querySelector('.notice__form');
+var advertisementForm = document.querySelector('.notice__form');
+var addressInput = advertisementForm.querySelector('#address');
+var titleInput = advertisementForm.querySelector('#title');
+var timeInInput = advertisementForm.querySelector('#timein');
+var timeOutInput = advertisementForm.querySelector('#timeout');
+var typeInput = advertisementForm.querySelector('#type');
+var priceInput = advertisementForm.querySelector('#price');
+var roomsInput = advertisementForm.querySelector('#room_number');
+var capacityInput = advertisementForm.querySelector('#capacity');
 
 // Отрисовываем все объявления из массива
 advertisements.forEach(function (item) {
@@ -261,8 +386,17 @@ map.appendChild(fragment);
 
 dialogBlock.classList.add('hidden');
 
+// Вешаем обработчики на метки объявлений и диалоговую панель
 map.addEventListener('click', mapClickHandler);
 map.addEventListener('keydown', mapKeyDownHandler);
 dialogClose.addEventListener('click', dialogCloseClickHandler);
 dialogClose.addEventListener('keydown', dialogCloseKeyDownHandler);
 document.addEventListener('keydown', keyDownHandler);
+
+setInitialInputAttributes();
+
+// Вешаем обработчики на элементы формы размещения объявления
+timeInInput.addEventListener('input', timeInputHandler);
+timeOutInput.addEventListener('input', timeInputHandler);
+typeInput.addEventListener('input', typeInputHandler);
+roomsInput.addEventListener('input', roomsInputHandler);
