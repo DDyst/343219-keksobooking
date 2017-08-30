@@ -64,11 +64,20 @@ var typeToPriceRatio = {
   PALACE: 10000
 };
 
-// Объект со значениями атрибута value для опций выпадающих списков, соответствующих апартаментам, не предназначенным для гостей
-var nonGuestsValue = {
-  ROOMS: '100',
-  CAPACITY: '0'
+// Объект с данными значений полей #room_number и #capacity
+var roomsAndCapacityData = {
+  ONE_ROOM_VALUE: '1',
+  TWO_ROOMS_VALUE: '2',
+  THREE_ROOMS_VALUE: '3',
+  HUNDRED_ROOMS_VALUE: '100',
+  ONE_ROOM_DISABLED_INDEXES: [0, 1, 3],
+  TWO_ROOMS_DISABLED_INDEXES: [0, 3],
+  THREE_ROOMS_DISABLED_INDEXES: [3],
+  HUNDRED_ROOMS_DISABLED_INDEXES: [0, 1, 2],
+  CAPACITY_NON_GUESTS_VALUE: '0'
 };
+
+var INVALID_FIELD_BORDER = '2px solid #ff0000';
 
 // Функция, сравнивающая значение переданного кода клавиши с кодом Esc
 var isEscPressed = function (code) {
@@ -252,21 +261,16 @@ var setInitialInputAttributes = function () {
   adjustCapacity();
 };
 
+// Функция, блокирующая опцию списка #capacity, соответствующую переданному индексу опции
+var disableCapacityOptions = function (value) {
+  capacityInput.options[value].disabled = true;
+};
+
 // Функция для снятия disabled у элементов списка
 var cleanDisabledOptions = function (select) {
   for (var i = 0; i < select.options.length; i++) {
     select.options[i].disabled = false;
   }
-};
-
-// Функция переключения атрибута disabled
-var toggleDisabled = function (element) {
-  element.disabled = element.disabled ? false : true;
-};
-
-// Функция сравнения значений value у выбранной пользователем опции количества комнат и опций числа гостей
-var isCapacityValueBiggerThanRooms = function (index) {
-  return parseInt(capacityInput.options[index].value, 10) > parseInt(roomsInput.value, 10);
 };
 
 // Функция синхронизации полей времени заезда и выезда
@@ -285,37 +289,41 @@ var adjustPrice = function () {
 
 // Функция синхронизации полей количества комнат и числа гостей
 var adjustCapacity = function () {
-  for (var i = 0; i < capacityInput.options.length; i++) {
-    if (isCapacityValueBiggerThanRooms(i) || capacityInput.options[i].value === nonGuestsValue.CAPACITY) {
-      capacityInput.options[i].disabled = true;
-    }
-    if (roomsInput.value === nonGuestsValue.ROOMS) {
-      toggleDisabled(capacityInput.options[i]);
-    }
-    if (roomsInput.value !== nonGuestsValue.ROOMS) {
-      capacityInput.value = roomsInput.value;
-    } else {
-      capacityInput.value = nonGuestsValue.CAPACITY;
-    }
+  if (roomsInput.value === roomsAndCapacityData.ONE_ROOM_VALUE) {
+    roomsAndCapacityData.ONE_ROOM_DISABLED_INDEXES.forEach(disableCapacityOptions);
+  } else if (roomsInput.value === roomsAndCapacityData.TWO_ROOMS_VALUE) {
+    roomsAndCapacityData.TWO_ROOMS_DISABLED_INDEXES.forEach(disableCapacityOptions);
+  } else if (roomsInput.value === roomsAndCapacityData.THREE_ROOMS_VALUE) {
+    roomsAndCapacityData.THREE_ROOMS_DISABLED_INDEXES.forEach(disableCapacityOptions);
+  } else {
+    roomsAndCapacityData.HUNDRED_ROOMS_DISABLED_INDEXES.forEach(disableCapacityOptions);
   }
-  // if (roomsInput.value === '1') {
-  //   capacityInput.options[0].disabled = true;
-  //   capacityInput.options[1].disabled = true;
-  //   capacityInput.options[3].disabled = true;
-  //   capacityInput.value = roomsInput.value;
-  // } else if (roomsInput.value === '2') {
-  //   capacityInput.options[0].disabled = true;
-  //   capacityInput.options[3].disabled = true;
-  //   capacityInput.value = roomsInput.value;
-  // } else if (roomsInput.value === '3') {
-  //   capacityInput.options[3].disabled = true;
-  //   capacityInput.value = roomsInput.value;
-  // } else {
-  //   capacityInput.options[0].disabled = true;
-  //   capacityInput.options[1].disabled = true;
-  //   capacityInput.options[2].disabled = true;
-  //   capacityInput.value = '0';
-  // }
+  if (roomsInput.value !== roomsAndCapacityData.HUNDRED_ROOMS_VALUE) {
+    capacityInput.value = roomsInput.value;
+  } else {
+    capacityInput.value = roomsAndCapacityData.CAPACITY_NON_GUESTS_VALUE;
+  }
+};
+
+// Функция, обнуляющая значение style.border элемента
+var setInitialBorderStyle = function (element) {
+  element.style.border = '';
+};
+
+// Функция, отмечающая поля формы при условии их невалидности
+var markInvalidFields = function () {
+  if (!addressInput.validity.valid) {
+    addressInput.style.border = INVALID_FIELD_BORDER;
+    addressInput.addEventListener('input', fieldInputHandler);
+  }
+  if (!titleInput.validity.valid) {
+    titleInput.style.border = INVALID_FIELD_BORDER;
+    titleInput.addEventListener('input', fieldInputHandler);
+  }
+  if (!priceInput.validity.valid) {
+    priceInput.style.border = INVALID_FIELD_BORDER;
+    priceInput.addEventListener('input', fieldInputHandler);
+  }
 };
 
 // Обработчики событий
@@ -361,6 +369,23 @@ var roomsInputHandler = function () {
   adjustCapacity();
 };
 
+var submitButtonClickHandler = function () {
+  markInvalidFields();
+};
+
+var submitButtonKeydownHandler = function (evt) {
+  if (isEnterPressed(evt.keyCode)) {
+    markInvalidFields();
+  }
+};
+
+var fieldInputHandler = function (evt) {
+  if (evt.target.validity.valid) {
+    setInitialBorderStyle(evt.target);
+    evt.target.removeEventListener('input', fieldInputHandler);
+  }
+};
+
 var panelTemplate = document.getElementById('lodge-template').content;
 var map = document.querySelector('.tokyo__pin-map');
 var dialogBlock = document.getElementById('offer-dialog');
@@ -369,6 +394,7 @@ var advertisements = generateAdvertisements(advertisementsData);
 var fragment = document.createDocumentFragment();
 var activePin = false;
 var advertisementForm = document.querySelector('.notice__form');
+var submitButton = advertisementForm.querySelector('.form__submit');
 var addressInput = advertisementForm.querySelector('#address');
 var titleInput = advertisementForm.querySelector('#title');
 var timeInInput = advertisementForm.querySelector('#timein');
@@ -400,3 +426,5 @@ timeInInput.addEventListener('input', timeInputHandler);
 timeOutInput.addEventListener('input', timeInputHandler);
 typeInput.addEventListener('input', typeInputHandler);
 roomsInput.addEventListener('input', roomsInputHandler);
+submitButton.addEventListener('click', submitButtonClickHandler);
+submitButton.addEventListener('keydown', submitButtonKeydownHandler);
