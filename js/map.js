@@ -2,12 +2,13 @@
 
 'use strict';
 
+var TABINDEX_SOURCE_ORDER_VALUE = 0;
+
+// Объект со значениями кодов клавиш
 var keyCodes = {
   ESC: 27,
   ENTER: 13
 };
-
-var TABINDEX_SOURCE_ORDER_VALUE = 0;
 
 // Объект с настройками массива объявлений
 var advertisementsData = {
@@ -45,6 +46,38 @@ var lodgeTypesRelations = {
   HOUSE: 'Дом',
   BUNGALO: 'Бунгало'
 };
+
+// Объект со значениями атрибутов полей формы
+var formFieldsData = {
+  TITLE_MIN_LENGTH: 30,
+  TITLE_MAX_LENGTH: 100,
+  PRICE_MIN_VALUE: 0,
+  PRICE_MAX_VALUE: 1000000,
+  PRICE_INITIAL_VALUE: '1000'
+};
+
+// Объект с соотношением типа апартаментов и минимальной цены при размещении объявления
+var typeToPriceRatio = {
+  BUNGALO: 0,
+  FLAT: 1000,
+  HOUSE: 5000,
+  PALACE: 10000
+};
+
+// Объект с данными значений полей #room_number и #capacity
+var roomsAndCapacityData = {
+  ONE_ROOM_VALUE: '1',
+  TWO_ROOMS_VALUE: '2',
+  THREE_ROOMS_VALUE: '3',
+  HUNDRED_ROOMS_VALUE: '100',
+  ONE_ROOM_DISABLED_INDEXES: [0, 1, 3],
+  TWO_ROOMS_DISABLED_INDEXES: [0, 3],
+  THREE_ROOMS_DISABLED_INDEXES: [3],
+  HUNDRED_ROOMS_DISABLED_INDEXES: [0, 1, 2],
+  CAPACITY_NON_GUESTS_VALUE: '0'
+};
+
+var INVALID_FIELD_BORDER = '2px solid #ff0000';
 
 // Функция, сравнивающая значение переданного кода клавиши с кодом Esc
 var isEscPressed = function (code) {
@@ -214,6 +247,85 @@ var activatePinAndPanel = function (target) {
   }
 };
 
+// Функция, устанавливающая изначальные значения атрибутов полей формы
+var setInitialInputAttributes = function () {
+  addressInput.required = true;
+  titleInput.minLength = formFieldsData.TITLE_MIN_LENGTH;
+  titleInput.maxLength = formFieldsData.TITLE_MAX_LENGTH;
+  titleInput.required = true;
+  priceInput.min = formFieldsData.PRICE_MIN_VALUE;
+  priceInput.max = formFieldsData.PRICE_MAX_VALUE;
+  priceInput.value = formFieldsData.PRICE_INITIAL_VALUE;
+  priceInput.required = true;
+  adjustPrice();
+  adjustCapacity();
+};
+
+// Функция, блокирующая опцию списка #capacity, соответствующую переданному индексу опции
+var disableCapacityOptions = function (value) {
+  capacityInput.options[value].disabled = true;
+};
+
+// Функция для снятия disabled у элементов списка
+var cleanDisabledOptions = function (select) {
+  for (var i = 0; i < select.options.length; i++) {
+    select.options[i].disabled = false;
+  }
+};
+
+// Функция синхронизации полей времени заезда и выезда
+var adjustTime = function (target) {
+  if (target === timeInInput) {
+    timeOutInput.value = target.value;
+  } else {
+    timeInInput.value = target.value;
+  }
+};
+
+// Функция синхронизации полей типа апартаментов и минимальной цены
+var adjustPrice = function () {
+  priceInput.min = typeToPriceRatio[typeInput.value.toUpperCase()];
+};
+
+// Функция синхронизации полей количества комнат и числа гостей
+var adjustCapacity = function () {
+  if (roomsInput.value === roomsAndCapacityData.ONE_ROOM_VALUE) {
+    roomsAndCapacityData.ONE_ROOM_DISABLED_INDEXES.forEach(disableCapacityOptions);
+  } else if (roomsInput.value === roomsAndCapacityData.TWO_ROOMS_VALUE) {
+    roomsAndCapacityData.TWO_ROOMS_DISABLED_INDEXES.forEach(disableCapacityOptions);
+  } else if (roomsInput.value === roomsAndCapacityData.THREE_ROOMS_VALUE) {
+    roomsAndCapacityData.THREE_ROOMS_DISABLED_INDEXES.forEach(disableCapacityOptions);
+  } else {
+    roomsAndCapacityData.HUNDRED_ROOMS_DISABLED_INDEXES.forEach(disableCapacityOptions);
+  }
+  if (roomsInput.value !== roomsAndCapacityData.HUNDRED_ROOMS_VALUE) {
+    capacityInput.value = roomsInput.value;
+  } else {
+    capacityInput.value = roomsAndCapacityData.CAPACITY_NON_GUESTS_VALUE;
+  }
+};
+
+// Функция, обнуляющая значение style.border элемента
+var setInitialBorderStyle = function (element) {
+  element.style.border = '';
+};
+
+// Функция, отмечающая поля формы при условии их невалидности
+var markInvalidFields = function () {
+  if (!addressInput.validity.valid) {
+    addressInput.style.border = INVALID_FIELD_BORDER;
+    addressInput.addEventListener('input', fieldInputHandler);
+  }
+  if (!titleInput.validity.valid) {
+    titleInput.style.border = INVALID_FIELD_BORDER;
+    titleInput.addEventListener('input', fieldInputHandler);
+  }
+  if (!priceInput.validity.valid) {
+    priceInput.style.border = INVALID_FIELD_BORDER;
+    priceInput.addEventListener('input', fieldInputHandler);
+  }
+};
+
 // Обработчики событий
 var mapClickHandler = function (evt) {
   activatePinAndPanel(evt.target);
@@ -244,6 +356,36 @@ var keyDownHandler = function (evt) {
   }
 };
 
+var timeInputHandler = function (evt) {
+  adjustTime(evt.target);
+};
+
+var typeInputHandler = function () {
+  adjustPrice();
+};
+
+var roomsInputHandler = function () {
+  cleanDisabledOptions(capacityInput);
+  adjustCapacity();
+};
+
+var submitButtonClickHandler = function () {
+  markInvalidFields();
+};
+
+var submitButtonKeydownHandler = function (evt) {
+  if (isEnterPressed(evt.keyCode)) {
+    markInvalidFields();
+  }
+};
+
+var fieldInputHandler = function (evt) {
+  if (evt.target.validity.valid) {
+    setInitialBorderStyle(evt.target);
+    evt.target.removeEventListener('input', fieldInputHandler);
+  }
+};
+
 var panelTemplate = document.getElementById('lodge-template').content;
 var map = document.querySelector('.tokyo__pin-map');
 var dialogBlock = document.getElementById('offer-dialog');
@@ -251,6 +393,16 @@ var dialogClose = dialogBlock.querySelector('.dialog__close');
 var advertisements = generateAdvertisements(advertisementsData);
 var fragment = document.createDocumentFragment();
 var activePin = false;
+var advertisementForm = document.querySelector('.notice__form');
+var submitButton = advertisementForm.querySelector('.form__submit');
+var addressInput = advertisementForm.querySelector('#address');
+var titleInput = advertisementForm.querySelector('#title');
+var timeInInput = advertisementForm.querySelector('#timein');
+var timeOutInput = advertisementForm.querySelector('#timeout');
+var typeInput = advertisementForm.querySelector('#type');
+var priceInput = advertisementForm.querySelector('#price');
+var roomsInput = advertisementForm.querySelector('#room_number');
+var capacityInput = advertisementForm.querySelector('#capacity');
 
 // Отрисовываем все объявления из массива
 advertisements.forEach(function (item) {
@@ -260,8 +412,19 @@ map.appendChild(fragment);
 
 dialogBlock.classList.add('hidden');
 
+// Вешаем обработчики на метки объявлений и диалоговую панель
 map.addEventListener('click', mapClickHandler);
 map.addEventListener('keydown', mapKeyDownHandler);
 dialogClose.addEventListener('click', dialogCloseClickHandler);
 dialogClose.addEventListener('keydown', dialogCloseKeyDownHandler);
 document.addEventListener('keydown', keyDownHandler);
+
+setInitialInputAttributes();
+
+// Вешаем обработчики на элементы формы размещения объявления
+timeInInput.addEventListener('input', timeInputHandler);
+timeOutInput.addEventListener('input', timeInputHandler);
+typeInput.addEventListener('input', typeInputHandler);
+roomsInput.addEventListener('input', roomsInputHandler);
+submitButton.addEventListener('click', submitButtonClickHandler);
+submitButton.addEventListener('keydown', submitButtonKeydownHandler);
