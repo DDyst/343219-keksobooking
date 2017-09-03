@@ -6,8 +6,6 @@
   // Объект с настройками массива объявлений
   var advertisementsData = {
     QUANTITY: 8,
-    ELEMENT_WIDTH: 56,
-    ELEMENT_HEIGHT: 75,
     TITLES: [
       'Большая уютная квартира',
       'Маленькая неуютная квартира',
@@ -65,17 +63,5 @@
     return generatedAdvertisements;
   };
 
-  window.data = {
-    advertisements: generateAdvertisements(advertisementsData),
-
-    // Функция нахождения координаты левого верхнего угла по X, принимает координату острого конца метки
-    getProperXCoord: function (xCoord) {
-      return xCoord - advertisementsData.ELEMENT_WIDTH / 2;
-    },
-
-    // Функция нахождения координаты левого верхнего угла по Y, принимает координату острого конца метки
-    getProperYCoord: function (yCoord) {
-      return yCoord - advertisementsData.ELEMENT_HEIGHT;
-    }
-  };
+  window.advertisements = generateAdvertisements(advertisementsData);
 })();

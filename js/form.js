@@ -48,6 +48,7 @@
   // Функция, устанавливающая изначальные значения атрибутов полей формы
   var setInitialInputAttributes = function () {
     addressInput.required = true;
+    addressInput.readOnly = true;
     titleInput.minLength = formFieldsData.TITLE_MIN_LENGTH;
     titleInput.maxLength = formFieldsData.TITLE_MAX_LENGTH;
     titleInput.required = true;
