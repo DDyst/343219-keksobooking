@@ -94,5 +94,6 @@ pin.js - отрисовка меток объявлений и взаимоде�
     document.addEventListener('mouseup', mouseUpHandler);
   };
 
+  refreshAddress();
   mainPin.addEventListener('mousedown', pinMouseDownHandler);
 })();

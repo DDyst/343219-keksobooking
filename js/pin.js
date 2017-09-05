@@ -56,26 +56,14 @@
     }
   };
 
-  // Функция, подсвечивающая активируемую метку объявления и открывающая соответствующую ей диалоговую панель
-  var activatePinAndPanel = function (target) {
-    while (target !== map) {
-      if (target.classList.contains('pin') && !target.classList.contains('pin__main')) {
-        switchPin(target);
-        window.card.renderProperPanel(target);
-        break;
-      }
-      target = target.parentNode;
-    }
-  };
-
   // Обработчики событий
   var mapClickHandler = function (evt) {
-    activatePinAndPanel(evt.target);
+    window.showCard(evt.target, switchPin);
   };
 
   var mapKeyDownHandler = function (evt) {
     if (window.util.isEnterPressed(evt.keyCode)) {
-      activatePinAndPanel(evt.target);
+      window.showCard(evt.target, switchPin);
     }
   };
 

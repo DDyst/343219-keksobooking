@@ -56,8 +56,8 @@
     priceInput.max = formFieldsData.PRICE_MAX_VALUE;
     priceInput.value = formFieldsData.PRICE_INITIAL_VALUE;
     priceInput.required = true;
-    adjustPrice();
-    adjustCapacity();
+    window.synchronizeFields(adjustPrice);
+    window.synchronizeFields(adjustCapacity);
   };
 
   // Функция, блокирующая опцию списка #capacity, соответствующую переданному индексу опции
@@ -127,16 +127,16 @@
 
   // Обработчики событий
   var timeInputHandler = function (evt) {
-    adjustTime(evt.target);
+    window.synchronizeFields(adjustTime, evt.target);
   };
 
   var typeInputHandler = function () {
-    adjustPrice();
+    window.synchronizeFields(adjustPrice);
   };
 
   var roomsInputHandler = function () {
     cleanDisabledOptions(capacityInput);
-    adjustCapacity();
+    window.synchronizeFields(adjustCapacity);
   };
 
   var submitButtonClickHandler = function () {
