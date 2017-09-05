@@ -12,7 +12,7 @@
   var TABINDEX_SOURCE_ORDER_VALUE = 0;
   var map = document.querySelector('.tokyo__pin-map');
   var fragment = document.createDocumentFragment();
-  var dialogBlock = document.getElementById('offer-dialog');
+  var dialogBlock = document.querySelector('#offer-dialog');
   var dialogClose = dialogBlock.querySelector('.dialog__close');
   var activePin = false;
 
@@ -56,26 +56,14 @@
     }
   };
 
-  // Функция, подсвечивающая активируемую метку объявления и открывающая соответствующую ей диалоговую панель
-  var activatePinAndPanel = function (target) {
-    while (target !== map) {
-      if (target.classList.contains('pin') && !target.classList.contains('pin__main')) {
-        switchPin(target);
-        window.card.renderProperPanel(target);
-        break;
-      }
-      target = target.parentNode;
-    }
-  };
-
   // Обработчики событий
   var mapClickHandler = function (evt) {
-    activatePinAndPanel(evt.target);
+    window.showCard(evt.target, switchPin);
   };
 
   var mapKeyDownHandler = function (evt) {
     if (window.util.isEnterPressed(evt.keyCode)) {
-      activatePinAndPanel(evt.target);
+      window.showCard(evt.target, switchPin);
     }
   };
 

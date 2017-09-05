@@ -11,8 +11,8 @@
   };
 
   var fragment = document.createDocumentFragment();
-  var panelTemplate = document.getElementById('lodge-template').content;
-  var dialogBlock = document.getElementById('offer-dialog');
+  var panelTemplate = document.querySelector('#lodge-template').content;
+  var dialogBlock = document.querySelector('#offer-dialog');
 
   // Функция, переводящая тип апартаментов в удобочитаемый вид
   var getProperLodgeType = function (type) {

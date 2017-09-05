@@ -56,8 +56,8 @@
     priceInput.max = formFieldsData.PRICE_MAX_VALUE;
     priceInput.value = formFieldsData.PRICE_INITIAL_VALUE;
     priceInput.required = true;
-    adjustPrice();
-    adjustCapacity();
+    window.synchronizeFields(priceInput, typeInput, adjustPrice);
+    window.synchronizeFields(capacityInput, roomsInput, adjustCapacity);
   };
 
   // Функция, блокирующая опцию списка #capacity, соответствующую переданному индексу опции
@@ -67,40 +67,40 @@
 
   // Функция для снятия disabled у элементов списка
   var cleanDisabledOptions = function (select) {
-    for (var i = 0; i < select.options.length; i++) {
-      select.options[i].disabled = false;
-    }
+    [].forEach.call(select.options, function (item) {
+      item.disabled = false;
+    });
   };
 
   // Функция синхронизации полей времени заезда и выезда
-  var adjustTime = function (target) {
-    if (target === timeInInput) {
-      timeOutInput.value = target.value;
+  var adjustTime = function (input1, input2, target) {
+    if (target === input1) {
+      input2.value = target.value;
     } else {
-      timeInInput.value = target.value;
+      input1.value = target.value;
     }
   };
 
   // Функция синхронизации полей типа апартаментов и минимальной цены
-  var adjustPrice = function () {
-    priceInput.min = typeToPriceRatio[typeInput.value.toUpperCase()];
+  var adjustPrice = function (input1, input2) {
+    input1.min = typeToPriceRatio[input2.value.toUpperCase()];
   };
 
   // Функция синхронизации полей количества комнат и числа гостей
-  var adjustCapacity = function () {
-    if (roomsInput.value === roomsAndCapacityData.ONE_ROOM_VALUE) {
+  var adjustCapacity = function (input1, input2) {
+    if (input2.value === roomsAndCapacityData.ONE_ROOM_VALUE) {
       roomsAndCapacityData.ONE_ROOM_DISABLED_INDEXES.forEach(disableCapacityOptions);
-    } else if (roomsInput.value === roomsAndCapacityData.TWO_ROOMS_VALUE) {
+    } else if (input2.value === roomsAndCapacityData.TWO_ROOMS_VALUE) {
       roomsAndCapacityData.TWO_ROOMS_DISABLED_INDEXES.forEach(disableCapacityOptions);
-    } else if (roomsInput.value === roomsAndCapacityData.THREE_ROOMS_VALUE) {
+    } else if (input2.value === roomsAndCapacityData.THREE_ROOMS_VALUE) {
       roomsAndCapacityData.THREE_ROOMS_DISABLED_INDEXES.forEach(disableCapacityOptions);
     } else {
       roomsAndCapacityData.HUNDRED_ROOMS_DISABLED_INDEXES.forEach(disableCapacityOptions);
     }
-    if (roomsInput.value !== roomsAndCapacityData.HUNDRED_ROOMS_VALUE) {
-      capacityInput.value = roomsInput.value;
+    if (input2.value !== roomsAndCapacityData.HUNDRED_ROOMS_VALUE) {
+      input1.value = input2.value;
     } else {
-      capacityInput.value = roomsAndCapacityData.CAPACITY_NON_GUESTS_VALUE;
+      input1.value = roomsAndCapacityData.CAPACITY_NON_GUESTS_VALUE;
     }
   };
 
@@ -127,16 +127,16 @@
 
   // Обработчики событий
   var timeInputHandler = function (evt) {
-    adjustTime(evt.target);
+    window.synchronizeFields(timeInInput, timeOutInput, adjustTime, evt.target);
   };
 
   var typeInputHandler = function () {
-    adjustPrice();
+    window.synchronizeFields(priceInput, typeInput, adjustPrice);
   };
 
   var roomsInputHandler = function () {
     cleanDisabledOptions(capacityInput);
-    adjustCapacity();
+    window.synchronizeFields(capacityInput, roomsInput, adjustCapacity);
   };
 
   var submitButtonClickHandler = function () {
