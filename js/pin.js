@@ -12,7 +12,7 @@
   var TABINDEX_SOURCE_ORDER_VALUE = 0;
   var map = document.querySelector('.tokyo__pin-map');
   var fragment = document.createDocumentFragment();
-  var dialogBlock = document.getElementById('offer-dialog');
+  var dialogBlock = document.querySelector('#offer-dialog');
   var dialogClose = dialogBlock.querySelector('.dialog__close');
   var activePin = false;
 

@@ -11,7 +11,7 @@ pin.js - отрисовка меток объявлений и взаимоде�
   var map = document.querySelector('.tokyo');
   var mapFilters = map.querySelector('.tokyo__filters-container');
   var mainPin = map.querySelector('.pin__main');
-  var addressInput = document.getElementById('address');
+  var addressInput = document.querySelector('#address');
 
   // Объект с координатами границ перемещения метки при перетаскивании, из учета позиционирования через top и left
   var mapBordersCoordinates = {

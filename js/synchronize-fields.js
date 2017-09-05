@@ -3,7 +3,7 @@
 'use strict';
 
 (function () {
-  window.synchronizeFields = function (callBack, target) {
-    callBack(target);
+  window.synchronizeFields = function (input1, input2, callBack, target) {
+    callBack(input1, input2, target);
   };
 })();
