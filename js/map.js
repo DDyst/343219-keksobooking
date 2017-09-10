@@ -15,7 +15,7 @@ pin.js - отрисовка меток объявлений и взаимоде�
 
   // Объект с координатами границ перемещения метки при перетаскивании, из учета позиционирования через top и left
   var mapBordersCoordinates = {
-    top: 0,
+    top: document.querySelector('.header').offsetHeight,
     right: map.offsetWidth,
     bottom: map.offsetHeight - mapFilters.offsetHeight,
     left: 0
@@ -47,19 +47,9 @@ pin.js - отрисовка меток объявлений и взаимоде�
     mainPin.style.left = (isPinInHorizontalBorders(xShift) ? mainPin.offsetLeft - xShift : getInnerHorizontalCoord(xShift)) + 'px';
   };
 
-  // Функция нахождения координаты острого конца главной метки по X, принимает координату левого верхнего угла
-  var getProperXCoord = function (xCoord) {
-    return xCoord + Math.floor(mainPin.offsetWidth / 2);
-  };
-
-  // Функция нахождения координаты острого конца главной метки по Y, принимает координату левого верхнего угла
-  var getProperYCoord = function (yCoord) {
-    return yCoord + mainPin.offsetHeight;
-  };
-
   // Функция обновления значения в поле #address при перетаскивании метки
   var refreshAddress = function () {
-    addressInput.value = 'x: ' + getProperXCoord(mainPin.offsetLeft) + ', y: ' + getProperYCoord(mainPin.offsetTop);
+    addressInput.value = 'x: ' + window.util.getPinTipXCoord(mainPin.offsetLeft, mainPin.offsetWidth) + ', y: ' + window.util.getPinTipYCoord(mainPin.offsetTop, mainPin.offsetHeight);
   };
 
   // Обработчик перетаскивания метки
@@ -96,4 +86,10 @@ pin.js - отрисовка меток объявлений и взаимоде�
 
   refreshAddress();
   mainPin.addEventListener('mousedown', pinMouseDownHandler);
+
+  window.setInitialAddress = function () {
+    mainPin.style.top = '';
+    mainPin.style.left = '';
+    refreshAddress();
+  };
 })();

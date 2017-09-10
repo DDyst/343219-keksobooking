@@ -49,9 +49,9 @@
 
     // Функция, определяющая соответствие между меткой объявления и элементом массива, и отрисовывающая соответствующую диалоговую панель
     renderProperPanel: function (pinElement) {
-      for (var i = 0; i < window.advertisements.length; i++) {
-        if (pinElement.firstChild.getAttribute('src') === window.advertisements[i].author.avatar) {
-          this.renderDialogPanel(window.advertisements[i]);
+      for (var i = 0; i < window.downloadedAdvertisements.length; i++) {
+        if (window.util.getPinTipXCoord(pinElement.offsetLeft, window.data.pinProportions.WIDTH) === window.downloadedAdvertisements[i].location.x && window.util.getPinTipYCoord(pinElement.offsetTop, window.data.pinProportions.HEIGHT) === window.downloadedAdvertisements[i].location.y) {
+          this.renderDialogPanel(window.downloadedAdvertisements[i]);
           break;
         }
       }

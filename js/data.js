@@ -63,5 +63,14 @@
     return generatedAdvertisements;
   };
 
-  window.advertisements = generateAdvertisements(advertisementsData);
+  window.data = {
+    // Объект с размерами меток сгенерированных объявлений
+    pinProportions: {
+      WIDTH: 56,
+      HEIGHT: 75
+    },
+
+    // Массив сгенерированных объявлений
+    advertisements: generateAdvertisements(advertisementsData)
+  };
 })();
