@@ -14,8 +14,8 @@
   var renderAdvertisement = function (advertisement) {
     var advertisementElement = document.createElement('div');
     advertisementElement.className = 'pin';
-    advertisementElement.style.left = window.util.getTopLeftXCoord(advertisement.location.x, window.data.pinProportions.WIDTH) + 'px';
-    advertisementElement.style.top = window.util.getTopLeftYCoord(advertisement.location.y, window.data.pinProportions.HEIGHT) + 'px';
+    advertisementElement.style.left = window.getCoords.getTopLeftXCoord(advertisement.location.x, window.data.pinProportions.WIDTH) + 'px';
+    advertisementElement.style.top = window.getCoords.getTopLeftYCoord(advertisement.location.y, window.data.pinProportions.HEIGHT) + 'px';
     advertisementElement.tabIndex = TABINDEX_SOURCE_ORDER_VALUE;
     advertisementElement.innerHTML = '<img src="' + advertisement.author.avatar + '" class="rounded" width="40" height="40">';
     return advertisementElement;
@@ -79,7 +79,7 @@
     window.downloadedAdvertisements = data;
   };
 
-  window.backend.load(successHandler, window.util.errorHandler);
+  window.backend.load(successHandler, window.popUp.errorHandler);
 
   // Вешаем обработчики на метки объявлений и диалоговую панель
   map.addEventListener('click', mapClickHandler);

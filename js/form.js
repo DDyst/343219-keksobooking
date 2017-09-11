@@ -38,7 +38,6 @@
 
   var INVALID_FIELD_BORDER = '2px solid #ff0000';
   var advertisementForm = document.querySelector('.notice__form');
-  var submitButton = advertisementForm.querySelector('.form__submit');
   var addressInput = advertisementForm.querySelector('#address');
   var titleInput = advertisementForm.querySelector('#title');
   var timeInInput = advertisementForm.querySelector('#timein');
@@ -52,8 +51,9 @@
   var setInitialInputAttributes = function () {
     addressInput.required = true;
     addressInput.readOnly = true;
-    titleInput.minLength = formFieldsData.TITLE_MIN_LENGTH;
-    titleInput.maxLength = formFieldsData.TITLE_MAX_LENGTH;
+    titleInput.pattern = '.{' + formFieldsData.TITLE_MIN_LENGTH + ',' + formFieldsData.TITLE_MAX_LENGTH + '}';
+    // titleInput.minLength = formFieldsData.TITLE_MIN_LENGTH;
+    // titleInput.maxLength = formFieldsData.TITLE_MAX_LENGTH;
     titleInput.required = true;
     priceInput.min = formFieldsData.PRICE_MIN_VALUE;
     priceInput.max = formFieldsData.PRICE_MAX_VALUE;
@@ -106,16 +106,25 @@
     field.addEventListener('input', fieldInputHandler);
   };
 
+  // Функция для проверки валидности поля #price и снятия его маркировки в случае, если оно валидно
+  var checkPriceValidity = function () {
+    if (priceInput.checkValidity()) {
+      setInitialBorderStyle(priceInput);
+      priceInput.removeEventListener('input', fieldInputHandler);
+    }
+  };
+
   // Обработчики событий
-  var timeInputHandler = function (evt) {
+  var timeChangeHandler = function (evt) {
     window.synchronizeFields(timeInInput, timeOutInput, adjustTime, evt.target);
   };
 
-  var typeInputHandler = function () {
+  var typeChangeHandler = function () {
     window.synchronizeFields(priceInput, typeInput, adjustPrice);
+    checkPriceValidity();
   };
 
-  var roomsInputHandler = function () {
+  var roomsChangeHandler = function () {
     cleanDisabledOptions(capacityInput);
     window.synchronizeFields(capacityInput, roomsInput, adjustCapacity);
   };
@@ -124,27 +133,16 @@
     markField(evt.target);
   };
 
-  var submitButtonClickHandler = function () {
-    advertisementForm.addEventListener('invalid', formInvalidHandler, true);
-  };
-
-  var submitButtonKeydownHandler = function (evt) {
-    if (window.util.isEnterPressed(evt.keyCode)) {
-      advertisementForm.addEventListener('invalid', formInvalidHandler, true);
-    }
-  };
-
   var fieldInputHandler = function (evt) {
     if (evt.target.validity.valid) {
       setInitialBorderStyle(evt.target);
       evt.target.removeEventListener('input', fieldInputHandler);
-      advertisementForm.removeEventListener('invalid', formInvalidHandler, true);
     }
   };
 
   var formSubmitHandler = function (evt) {
     evt.preventDefault();
-    window.backend.save(new FormData(advertisementForm), window.util.uploadSuccessHandler, window.util.errorHandler);
+    window.backend.save(new FormData(advertisementForm), window.popUp.uploadSuccessHandler, window.popUp.errorHandler);
     advertisementForm.reset();
     setInitialInputAttributes();
     window.setInitialAddress();
@@ -153,11 +151,10 @@
   setInitialInputAttributes();
 
   // Вешаем обработчики на элементы формы размещения объявления
-  timeInInput.addEventListener('input', timeInputHandler);
-  timeOutInput.addEventListener('input', timeInputHandler);
-  typeInput.addEventListener('input', typeInputHandler);
-  roomsInput.addEventListener('input', roomsInputHandler);
-  submitButton.addEventListener('click', submitButtonClickHandler);
-  submitButton.addEventListener('keydown', submitButtonKeydownHandler);
+  timeInInput.addEventListener('change', timeChangeHandler);
+  timeOutInput.addEventListener('change', timeChangeHandler);
+  typeInput.addEventListener('change', typeChangeHandler);
+  roomsInput.addEventListener('change', roomsChangeHandler);
+  advertisementForm.addEventListener('invalid', formInvalidHandler, true);
   advertisementForm.addEventListener('submit', formSubmitHandler);
 })();

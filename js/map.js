@@ -49,7 +49,7 @@ pin.js - отрисовка меток объявлений и взаимоде�
 
   // Функция обновления значения в поле #address при перетаскивании метки
   var refreshAddress = function () {
-    addressInput.value = 'x: ' + window.util.getPinTipXCoord(mainPin.offsetLeft, mainPin.offsetWidth) + ', y: ' + window.util.getPinTipYCoord(mainPin.offsetTop, mainPin.offsetHeight);
+    addressInput.value = 'x: ' + window.getCoords.getPinTipXCoord(mainPin.offsetLeft, mainPin.offsetWidth) + ', y: ' + window.getCoords.getPinTipYCoord(mainPin.offsetTop, mainPin.offsetHeight);
   };
 
   // Обработчик перетаскивания метки
