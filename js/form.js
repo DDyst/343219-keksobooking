@@ -52,8 +52,8 @@
     addressInput.required = true;
     addressInput.readOnly = true;
     titleInput.pattern = '.{' + formFieldsData.TITLE_MIN_LENGTH + ',' + formFieldsData.TITLE_MAX_LENGTH + '}';
-    // titleInput.minLength = formFieldsData.TITLE_MIN_LENGTH;
-    // titleInput.maxLength = formFieldsData.TITLE_MAX_LENGTH;
+    titleInput.minLength = formFieldsData.TITLE_MIN_LENGTH;
+    titleInput.maxLength = formFieldsData.TITLE_MAX_LENGTH;
     titleInput.required = true;
     priceInput.min = formFieldsData.PRICE_MIN_VALUE;
     priceInput.max = formFieldsData.PRICE_MAX_VALUE;
@@ -114,6 +114,15 @@
     }
   };
 
+  // Функция для вывода кастомного сообщения для невалидного поля #title при вводе слишком короткого значения
+  var checkTitleLength = function () {
+    if (titleInput.value && titleInput.value.length < formFieldsData.TITLE_MIN_LENGTH) {
+      titleInput.setCustomValidity('Пожалуйста, используйте не менее ' + formFieldsData.TITLE_MIN_LENGTH + ' символов (сейчас вы используете ' + titleInput.value.length + ' символов).');
+    } else {
+      titleInput.setCustomValidity('');
+    }
+  };
+
   // Обработчики событий
   var timeChangeHandler = function (evt) {
     window.synchronizeFields(timeInInput, timeOutInput, adjustTime, evt.target);
@@ -134,6 +143,9 @@
   };
 
   var fieldInputHandler = function (evt) {
+    if (evt.target === titleInput) {
+      checkTitleLength();
+    }
     if (evt.target.validity.valid) {
       setInitialBorderStyle(evt.target);
       evt.target.removeEventListener('input', fieldInputHandler);
