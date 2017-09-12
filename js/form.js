@@ -13,29 +13,31 @@
   };
 
   // Объект с соотношением типа апартаментов и минимальной цены при размещении объявления
-  var typeToPriceRatio = {
+  var typeToPriceRelation = {
     BUNGALO: 0,
     FLAT: 1000,
     HOUSE: 5000,
     PALACE: 10000
   };
 
-  // Объект с данными значений полей #room_number и #capacity
-  var roomsAndCapacityData = {
-    ONE_ROOM_VALUE: '1',
-    TWO_ROOMS_VALUE: '2',
-    THREE_ROOMS_VALUE: '3',
-    HUNDRED_ROOMS_VALUE: '100',
-    ONE_ROOM_DISABLED_INDEXES: [0, 1, 3],
-    TWO_ROOMS_DISABLED_INDEXES: [0, 3],
-    THREE_ROOMS_DISABLED_INDEXES: [3],
-    HUNDRED_ROOMS_DISABLED_INDEXES: [0, 1, 2],
-    CAPACITY_NON_GUESTS_VALUE: '0'
+  // Объект с соотношением устанавливаемых значений полей #room_number и #capacity
+  var roomsToCapacityRelation = {
+    1: 1,
+    2: 2,
+    3: 3,
+    100: 0
+  };
+
+  // Объект с соотношением устанавливаемого значения поля #room_number и отключаемых значений поля #capacity
+  var roomsToDisabledCapacityRelation = {
+    1: [0, 1, 3],
+    2: [0, 3],
+    3: [3],
+    100: [0, 1, 2]
   };
 
   var INVALID_FIELD_BORDER = '2px solid #ff0000';
   var advertisementForm = document.querySelector('.notice__form');
-  var submitButton = advertisementForm.querySelector('.form__submit');
   var addressInput = advertisementForm.querySelector('#address');
   var titleInput = advertisementForm.querySelector('#title');
   var timeInInput = advertisementForm.querySelector('#timein');
@@ -49,6 +51,7 @@
   var setInitialInputAttributes = function () {
     addressInput.required = true;
     addressInput.readOnly = true;
+    titleInput.pattern = '.{' + formFieldsData.TITLE_MIN_LENGTH + ',' + formFieldsData.TITLE_MAX_LENGTH + '}';
     titleInput.minLength = formFieldsData.TITLE_MIN_LENGTH;
     titleInput.maxLength = formFieldsData.TITLE_MAX_LENGTH;
     titleInput.required = true;
@@ -61,8 +64,8 @@
   };
 
   // Функция, блокирующая опцию списка #capacity, соответствующую переданному индексу опции
-  var disableCapacityOptions = function (value) {
-    capacityInput.options[value].disabled = true;
+  var disableCapacityOptions = function (index) {
+    capacityInput.options[index].disabled = true;
   };
 
   // Функция для снятия disabled у элементов списка
@@ -73,35 +76,23 @@
   };
 
   // Функция синхронизации полей времени заезда и выезда
-  var adjustTime = function (input1, input2, target) {
-    if (target === input1) {
-      input2.value = target.value;
+  var adjustTime = function (firstField, secondField, target) {
+    if (target === firstField) {
+      secondField.value = target.value;
     } else {
-      input1.value = target.value;
+      firstField.value = target.value;
     }
   };
 
   // Функция синхронизации полей типа апартаментов и минимальной цены
-  var adjustPrice = function (input1, input2) {
-    input1.min = typeToPriceRatio[input2.value.toUpperCase()];
+  var adjustPrice = function (dependentField, mainField) {
+    dependentField.min = typeToPriceRelation[mainField.value.toUpperCase()];
   };
 
   // Функция синхронизации полей количества комнат и числа гостей
-  var adjustCapacity = function (input1, input2) {
-    if (input2.value === roomsAndCapacityData.ONE_ROOM_VALUE) {
-      roomsAndCapacityData.ONE_ROOM_DISABLED_INDEXES.forEach(disableCapacityOptions);
-    } else if (input2.value === roomsAndCapacityData.TWO_ROOMS_VALUE) {
-      roomsAndCapacityData.TWO_ROOMS_DISABLED_INDEXES.forEach(disableCapacityOptions);
-    } else if (input2.value === roomsAndCapacityData.THREE_ROOMS_VALUE) {
-      roomsAndCapacityData.THREE_ROOMS_DISABLED_INDEXES.forEach(disableCapacityOptions);
-    } else {
-      roomsAndCapacityData.HUNDRED_ROOMS_DISABLED_INDEXES.forEach(disableCapacityOptions);
-    }
-    if (input2.value !== roomsAndCapacityData.HUNDRED_ROOMS_VALUE) {
-      input1.value = input2.value;
-    } else {
-      input1.value = roomsAndCapacityData.CAPACITY_NON_GUESTS_VALUE;
-    }
+  var adjustCapacity = function (dependentField, mainField) {
+    roomsToDisabledCapacityRelation[mainField.value].forEach(disableCapacityOptions);
+    dependentField.value = roomsToCapacityRelation[mainField.value];
   };
 
   // Функция, обнуляющая значение style.border элемента
@@ -109,60 +100,73 @@
     element.style.border = '';
   };
 
-  // Функция, отмечающая поля формы при условии их невалидности
-  var markInvalidFields = function () {
-    if (!addressInput.validity.valid) {
-      addressInput.style.border = INVALID_FIELD_BORDER;
-      addressInput.addEventListener('input', fieldInputHandler);
+  // Функция для пометки невалидных полей формы
+  var markField = function (field) {
+    field.style.border = INVALID_FIELD_BORDER;
+    field.addEventListener('input', fieldInputHandler);
+  };
+
+  // Функция для проверки валидности поля #price и снятия его маркировки в случае, если оно валидно
+  var checkPriceValidity = function () {
+    if (priceInput.checkValidity()) {
+      setInitialBorderStyle(priceInput);
+      priceInput.removeEventListener('input', fieldInputHandler);
     }
-    if (!titleInput.validity.valid) {
-      titleInput.style.border = INVALID_FIELD_BORDER;
-      titleInput.addEventListener('input', fieldInputHandler);
-    }
-    if (!priceInput.validity.valid) {
-      priceInput.style.border = INVALID_FIELD_BORDER;
-      priceInput.addEventListener('input', fieldInputHandler);
+  };
+
+  // Функция для вывода кастомного сообщения для невалидного поля #title при вводе слишком короткого значения
+  var checkTitleLength = function () {
+    if (titleInput.value && titleInput.value.length < formFieldsData.TITLE_MIN_LENGTH) {
+      titleInput.setCustomValidity('Пожалуйста, используйте не менее ' + formFieldsData.TITLE_MIN_LENGTH + ' символов (сейчас вы используете ' + titleInput.value.length + ' символов).');
+    } else {
+      titleInput.setCustomValidity('');
     }
   };
 
   // Обработчики событий
-  var timeInputHandler = function (evt) {
+  var timeChangeHandler = function (evt) {
     window.synchronizeFields(timeInInput, timeOutInput, adjustTime, evt.target);
   };
 
-  var typeInputHandler = function () {
+  var typeChangeHandler = function () {
     window.synchronizeFields(priceInput, typeInput, adjustPrice);
+    checkPriceValidity();
   };
 
-  var roomsInputHandler = function () {
+  var roomsChangeHandler = function () {
     cleanDisabledOptions(capacityInput);
     window.synchronizeFields(capacityInput, roomsInput, adjustCapacity);
   };
 
-  var submitButtonClickHandler = function () {
-    markInvalidFields();
-  };
-
-  var submitButtonKeydownHandler = function (evt) {
-    if (window.util.isEnterPressed(evt.keyCode)) {
-      markInvalidFields();
-    }
+  var formInvalidHandler = function (evt) {
+    markField(evt.target);
   };
 
   var fieldInputHandler = function (evt) {
+    if (evt.target === titleInput) {
+      checkTitleLength();
+    }
     if (evt.target.validity.valid) {
       setInitialBorderStyle(evt.target);
       evt.target.removeEventListener('input', fieldInputHandler);
     }
   };
 
+  var formSubmitHandler = function (evt) {
+    evt.preventDefault();
+    window.backend.save(new FormData(advertisementForm), window.popUp.uploadSuccessHandler, window.popUp.errorHandler);
+    advertisementForm.reset();
+    setInitialInputAttributes();
+    window.setInitialAddress();
+  };
+
   setInitialInputAttributes();
 
   // Вешаем обработчики на элементы формы размещения объявления
-  timeInInput.addEventListener('input', timeInputHandler);
-  timeOutInput.addEventListener('input', timeInputHandler);
-  typeInput.addEventListener('input', typeInputHandler);
-  roomsInput.addEventListener('input', roomsInputHandler);
-  submitButton.addEventListener('click', submitButtonClickHandler);
-  submitButton.addEventListener('keydown', submitButtonKeydownHandler);
+  timeInInput.addEventListener('change', timeChangeHandler);
+  timeOutInput.addEventListener('change', timeChangeHandler);
+  typeInput.addEventListener('change', typeChangeHandler);
+  roomsInput.addEventListener('change', roomsChangeHandler);
+  advertisementForm.addEventListener('invalid', formInvalidHandler, true);
+  advertisementForm.addEventListener('submit', formSubmitHandler);
 })();

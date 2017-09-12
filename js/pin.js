@@ -3,12 +3,6 @@
 'use strict';
 
 (function () {
-  // Объект с размерами меток сгенерированных объявлений
-  var pinProportions = {
-    WIDTH: 56,
-    HEIGHT: 75
-  };
-
   var TABINDEX_SOURCE_ORDER_VALUE = 0;
   var map = document.querySelector('.tokyo__pin-map');
   var fragment = document.createDocumentFragment();
@@ -16,22 +10,12 @@
   var dialogClose = dialogBlock.querySelector('.dialog__close');
   var activePin = false;
 
-  // Функция нахождения координаты левого верхнего угла по X, принимает координату острого конца метки
-  var getProperXCoord = function (xCoord) {
-    return xCoord - pinProportions.WIDTH / 2;
-  };
-
-  // Функция нахождения координаты левого верхнего угла по Y, принимает координату острого конца метки
-  var getProperYCoord = function (yCoord) {
-    return yCoord - pinProportions.HEIGHT;
-  };
-
   // Функция отрисовки объявления на карте
   var renderAdvertisement = function (advertisement) {
     var advertisementElement = document.createElement('div');
     advertisementElement.className = 'pin';
-    advertisementElement.style.left = getProperXCoord(advertisement.location.x) + 'px';
-    advertisementElement.style.top = getProperYCoord(advertisement.location.y) + 'px';
+    advertisementElement.style.left = window.getCoords.getTopLeftXCoord(advertisement.location.x, window.data.pinProportions.WIDTH) + 'px';
+    advertisementElement.style.top = window.getCoords.getTopLeftYCoord(advertisement.location.y, window.data.pinProportions.HEIGHT) + 'px';
     advertisementElement.tabIndex = TABINDEX_SOURCE_ORDER_VALUE;
     advertisementElement.innerHTML = '<img src="' + advertisement.author.avatar + '" class="rounded" width="40" height="40">';
     return advertisementElement;
@@ -86,11 +70,16 @@
     }
   };
 
-  // Отрисовываем все объявления из сгенерированного массива
-  window.advertisements.forEach(function (item) {
-    fragment.appendChild(renderAdvertisement(item));
-  });
-  map.appendChild(fragment);
+  // Коллбэк, выполняющийся в случае успешной загрузки данных с сервера
+  var successHandler = function (data) {
+    data.forEach(function (item) {
+      fragment.appendChild(renderAdvertisement(item));
+    });
+    map.appendChild(fragment);
+    window.downloadedAdvertisements = data;
+  };
+
+  window.backend.load(successHandler, window.popUp.errorHandler);
 
   // Вешаем обработчики на метки объявлений и диалоговую панель
   map.addEventListener('click', mapClickHandler);
