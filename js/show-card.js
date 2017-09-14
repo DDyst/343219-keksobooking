@@ -6,11 +6,11 @@
   var map = document.querySelector('.tokyo__pin-map');
 
   // Функция, подсвечивающая активируемую метку объявления и открывающая соответствующую ей диалоговую панель
-  window.showCard = function (target, activatePin) {
+  window.showCard = function (target, activatePin, advertisements) {
     while (target !== map) {
       if (target.classList.contains('pin') && !target.classList.contains('pin__main')) {
         activatePin(target);
-        window.card.renderProperPanel(target);
+        window.card.renderProperPanel(target, advertisements);
         break;
       }
       target = target.parentNode;

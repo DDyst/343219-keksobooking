@@ -16,24 +16,24 @@
   var typeToPriceRelation = {
     BUNGALO: 0,
     FLAT: 1000,
-    HOUSE: 5000,
+    HOUSE: 10000,
     PALACE: 10000
   };
 
   // Объект с соотношением устанавливаемых значений полей #room_number и #capacity
   var roomsToCapacityRelation = {
-    1: 1,
-    2: 2,
-    3: 3,
-    100: 0
+    1: '1',
+    2: '2',
+    3: '3',
+    100: '0'
   };
 
   // Объект с соотношением устанавливаемого значения поля #room_number и отключаемых значений поля #capacity
   var roomsToDisabledCapacityRelation = {
-    1: [0, 1, 3],
-    2: [0, 3],
-    3: [3],
-    100: [0, 1, 2]
+    1: ['0', '1', '3'],
+    2: ['0', '3'],
+    3: ['3'],
+    100: ['0', '1', '2']
   };
 
   var INVALID_FIELD_BORDER = '2px solid #ff0000';

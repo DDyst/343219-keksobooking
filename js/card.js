@@ -53,10 +53,10 @@
     },
 
     // Функция, определяющая соответствие между меткой объявления и элементом массива, и отрисовывающая соответствующую диалоговую панель
-    renderProperPanel: function (pinElement) {
-      for (var i = 0; i < window.pin.downloadedAdvertisements.length; i++) {
-        if (window.coords.compareCoords(pinElement, window.pin.downloadedAdvertisements[i])) {
-          this.renderDialogPanel(window.pin.downloadedAdvertisements[i]);
+    renderProperPanel: function (pinElement, advertisements) {
+      for (var i = 0; i < advertisements.length; i++) {
+        if (window.coords.compareCoords(pinElement, advertisements[i])) {
+          this.renderDialogPanel(advertisements[i]);
           break;
         }
       }
@@ -65,20 +65,20 @@
     // Обработчики событий
     dialogCloseClickHandler: function () {
       closePanel();
-      window.pin.deactivatePin();
+      window.pin.deactivate();
     },
 
     dialogCloseKeyDownHandler: function (evt) {
       if (window.util.isEnterPressed(evt.keyCode)) {
         closePanel();
-        window.pin.deactivatePin();
+        window.pin.deactivate();
       }
     },
 
     keyDownHandler: function (evt) {
       if (window.util.isEscPressed(evt.keyCode) && !dialogBlock.classList.contains('hidden')) {
         closePanel();
-        window.pin.deactivatePin();
+        window.pin.deactivate();
       }
     }
   };

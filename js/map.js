@@ -14,6 +14,11 @@ pin.js - отрисовка меток объявлений и взаимоде�
   var dialogClose = map.querySelector('.dialog__close');
   var mainPin = map.querySelector('.pin__main');
   var addressInput = document.querySelector('#address');
+  var typeFilter = document.querySelector('#housing_type');
+  var priceFilter = document.querySelector('#housing_price');
+  var roomsFilter = document.querySelector('#housing_room-number');
+  var guestsFilter = document.querySelector('#housing_guests-number');
+  var featuresFilter = document.querySelector('#housing_features');
 
   // Объект с координатами границ перемещения метки при перетаскивании, из учета позиционирования через top и left
   var mapBordersCoordinates = {
@@ -54,17 +59,6 @@ pin.js - отрисовка меток объявлений и взаимоде�
     addressInput.value = 'x: ' + window.coords.getPinTipXCoord(mainPin.offsetLeft, mainPin.offsetWidth) + ', y: ' + window.coords.getPinTipYCoord(mainPin.offsetTop, mainPin.offsetHeight);
   };
 
-  // Обработчики событий
-  var pinBoardClickHandler = function (evt) {
-    window.showCard(evt.target, window.pin.activatePin);
-  };
-
-  var pinBoardKeyDownHandler = function (evt) {
-    if (window.util.isEnterPressed(evt.keyCode)) {
-      window.showCard(evt.target, window.pin.activatePin);
-    }
-  };
-
   // Обработчик перетаскивания метки
   var pinMouseDownHandler = function (evt) {
     evt.preventDefault();
@@ -97,15 +91,42 @@ pin.js - отрисовка меток объявлений и взаимоде�
     document.addEventListener('mouseup', mouseUpHandler);
   };
 
+  // Коллбэк, выполняющийся в случае успешной загрузки данных с сервера
+  var downloadSuccessHandler = function (data) {
+    var pinBoardClickHandler = function (evt) {
+      window.showCard(evt.target, window.pin.activate, data);
+    };
+
+    var pinBoardKeyDownHandler = function (evt) {
+      if (window.util.isEnterPressed(evt.keyCode)) {
+        window.showCard(evt.target, window.pin.activate, data);
+      }
+    };
+
+    var filterChangeHandler = function () {
+      window.debounce(window.pin.update(window.getFiltratedAdvertisements(data)));
+    };
+
+    window.pin.renderRandom(data);
+
+    pinBoard.addEventListener('click', pinBoardClickHandler);
+    pinBoard.addEventListener('keydown', pinBoardKeyDownHandler);
+    typeFilter.addEventListener('change', filterChangeHandler);
+    priceFilter.addEventListener('change', filterChangeHandler);
+    roomsFilter.addEventListener('change', filterChangeHandler);
+    guestsFilter.addEventListener('change', filterChangeHandler);
+    featuresFilter.addEventListener('change', filterChangeHandler, true);
+  };
+
   refreshAddress();
+
+  window.backend.load(downloadSuccessHandler, window.popUp.errorHandler);
 
   // Вешаем обработчики
   mainPin.addEventListener('mousedown', pinMouseDownHandler);
   dialogClose.addEventListener('click', window.card.dialogCloseClickHandler);
   dialogClose.addEventListener('keydown', window.card.dialogCloseKeyDownHandler);
   document.addEventListener('keydown', window.card.keyDownHandler);
-  pinBoard.addEventListener('click', pinBoardClickHandler);
-  pinBoard.addEventListener('keydown', pinBoardKeyDownHandler);
 
   // Функция установки главной метки в первоначальное положение
   window.setInitialAddress = function () {
