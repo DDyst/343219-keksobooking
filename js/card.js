@@ -29,6 +29,11 @@
     return fragment;
   };
 
+  // Функция закрытия диалоговой панели объявления
+  var closePanel = function () {
+    dialogBlock.classList.add('hidden');
+  };
+
   dialogBlock.classList.add('hidden');
 
   window.card = {
@@ -49,17 +54,32 @@
 
     // Функция, определяющая соответствие между меткой объявления и элементом массива, и отрисовывающая соответствующую диалоговую панель
     renderProperPanel: function (pinElement) {
-      for (var i = 0; i < window.downloadedAdvertisements.length; i++) {
-        if (window.getCoords.getPinTipXCoord(pinElement.offsetLeft, window.data.pinProportions.WIDTH) === window.downloadedAdvertisements[i].location.x && window.getCoords.getPinTipYCoord(pinElement.offsetTop, window.data.pinProportions.HEIGHT) === window.downloadedAdvertisements[i].location.y) {
-          this.renderDialogPanel(window.downloadedAdvertisements[i]);
+      for (var i = 0; i < window.pin.downloadedAdvertisements.length; i++) {
+        if (window.coords.compareCoords(pinElement, window.pin.downloadedAdvertisements[i])) {
+          this.renderDialogPanel(window.pin.downloadedAdvertisements[i]);
           break;
         }
       }
     },
 
-    // Функция закрытия диалоговой панели объявления
-    closePanel: function () {
-      dialogBlock.classList.add('hidden');
+    // Обработчики событий
+    dialogCloseClickHandler: function () {
+      closePanel();
+      window.pin.deactivatePin();
+    },
+
+    dialogCloseKeyDownHandler: function (evt) {
+      if (window.util.isEnterPressed(evt.keyCode)) {
+        closePanel();
+        window.pin.deactivatePin();
+      }
+    },
+
+    keyDownHandler: function (evt) {
+      if (window.util.isEscPressed(evt.keyCode) && !dialogBlock.classList.contains('hidden')) {
+        closePanel();
+        window.pin.deactivatePin();
+      }
     }
   };
 })();

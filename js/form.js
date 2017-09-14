@@ -76,21 +76,17 @@
   };
 
   // Функция синхронизации полей времени заезда и выезда
-  var adjustTime = function (firstField, secondField, target) {
-    if (target === firstField) {
-      secondField.value = target.value;
-    } else {
-      firstField.value = target.value;
-    }
+  var adjustTime = function (mainField, dependentField) {
+    dependentField.value = mainField.value;
   };
 
   // Функция синхронизации полей типа апартаментов и минимальной цены
-  var adjustPrice = function (dependentField, mainField) {
+  var adjustPrice = function (mainField, dependentField) {
     dependentField.min = typeToPriceRelation[mainField.value.toUpperCase()];
   };
 
   // Функция синхронизации полей количества комнат и числа гостей
-  var adjustCapacity = function (dependentField, mainField) {
+  var adjustCapacity = function (mainField, dependentField) {
     roomsToDisabledCapacityRelation[mainField.value].forEach(disableCapacityOptions);
     dependentField.value = roomsToCapacityRelation[mainField.value];
   };
@@ -124,18 +120,22 @@
   };
 
   // Обработчики событий
-  var timeChangeHandler = function (evt) {
-    window.synchronizeFields(timeInInput, timeOutInput, adjustTime, evt.target);
+  var timeInChangeHandler = function () {
+    window.synchronizeFields(timeInInput, timeOutInput, adjustTime);
+  };
+
+  var timeOutChangeHandler = function () {
+    window.synchronizeFields(timeOutInput, timeInInput, adjustTime);
   };
 
   var typeChangeHandler = function () {
-    window.synchronizeFields(priceInput, typeInput, adjustPrice);
+    window.synchronizeFields(typeInput, priceInput, adjustPrice);
     checkPriceValidity();
   };
 
   var roomsChangeHandler = function () {
     cleanDisabledOptions(capacityInput);
-    window.synchronizeFields(capacityInput, roomsInput, adjustCapacity);
+    window.synchronizeFields(roomsInput, capacityInput, adjustCapacity);
   };
 
   var formInvalidHandler = function (evt) {
@@ -163,8 +163,8 @@
   setInitialInputAttributes();
 
   // Вешаем обработчики на элементы формы размещения объявления
-  timeInInput.addEventListener('change', timeChangeHandler);
-  timeOutInput.addEventListener('change', timeChangeHandler);
+  timeInInput.addEventListener('change', timeInChangeHandler);
+  timeOutInput.addEventListener('change', timeOutChangeHandler);
   typeInput.addEventListener('change', typeChangeHandler);
   roomsInput.addEventListener('change', roomsChangeHandler);
   advertisementForm.addEventListener('invalid', formInvalidHandler, true);
