@@ -47,6 +47,15 @@
         this.deleteRandomArrayItem(copiedItems);
       }
       return copiedItems;
+    },
+
+    // Функция, возвращающая массив указанной длины из случайных элементов переданного в неё массива
+    getNewArray: function (array, newArrayLength) {
+      var copiedItems = array.slice();
+      for (var i = 0; copiedItems.length > newArrayLength; i++) {
+        this.deleteRandomArrayItem(copiedItems);
+      }
+      return copiedItems;
     }
   };
 })();

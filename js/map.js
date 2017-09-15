@@ -9,7 +9,9 @@ pin.js - отрисовка меток объявлений и взаимоде�
 
 (function () {
   var map = document.querySelector('.tokyo');
-  var mapFilters = map.querySelector('.tokyo__filters-container');
+  var pinBoard = map.querySelector('.tokyo__pin-map');
+  var filtersContainer = map.querySelector('.tokyo__filters-container');
+  var dialogClose = map.querySelector('.dialog__close');
   var mainPin = map.querySelector('.pin__main');
   var addressInput = document.querySelector('#address');
 
@@ -17,7 +19,7 @@ pin.js - отрисовка меток объявлений и взаимоде�
   var mapBordersCoordinates = {
     top: document.querySelector('.header').offsetHeight,
     right: map.offsetWidth,
-    bottom: map.offsetHeight - mapFilters.offsetHeight,
+    bottom: map.offsetHeight - filtersContainer.offsetHeight,
     left: 0
   };
 
@@ -49,7 +51,7 @@ pin.js - отрисовка меток объявлений и взаимоде�
 
   // Функция обновления значения в поле #address при перетаскивании метки
   var refreshAddress = function () {
-    addressInput.value = 'x: ' + window.getCoords.getPinTipXCoord(mainPin.offsetLeft, mainPin.offsetWidth) + ', y: ' + window.getCoords.getPinTipYCoord(mainPin.offsetTop, mainPin.offsetHeight);
+    addressInput.value = 'x: ' + window.coords.getPinTipXCoord(mainPin.offsetLeft, mainPin.offsetWidth) + ', y: ' + window.coords.getPinTipYCoord(mainPin.offsetTop, mainPin.offsetHeight);
   };
 
   // Обработчик перетаскивания метки
@@ -84,9 +86,36 @@ pin.js - отрисовка меток объявлений и взаимоде�
     document.addEventListener('mouseup', mouseUpHandler);
   };
 
-  refreshAddress();
-  mainPin.addEventListener('mousedown', pinMouseDownHandler);
+  // Коллбэк, выполняющийся в случае успешной загрузки данных с сервера
+  var downloadSuccessHandler = function (data) {
+    var pinBoardClickHandler = function (evt) {
+      window.showCard(evt.target, data);
+    };
 
+    var pinBoardKeyDownHandler = function (evt) {
+      if (window.util.isEnterPressed(evt.keyCode)) {
+        window.showCard(evt.target, data);
+      }
+    };
+
+    window.pin.renderRandom(data);
+    window.activateFilters(data);
+
+    pinBoard.addEventListener('click', pinBoardClickHandler);
+    pinBoard.addEventListener('keydown', pinBoardKeyDownHandler);
+  };
+
+  refreshAddress();
+
+  window.backend.load(downloadSuccessHandler, window.popUp.errorHandler);
+
+  // Вешаем обработчики
+  mainPin.addEventListener('mousedown', pinMouseDownHandler);
+  dialogClose.addEventListener('click', window.card.dialogCloseClickHandler);
+  dialogClose.addEventListener('keydown', window.card.dialogCloseKeyDownHandler);
+  document.addEventListener('keydown', window.card.keyDownHandler);
+
+  // Функция установки главной метки в первоначальное положение
   window.setInitialAddress = function () {
     mainPin.style.top = '';
     mainPin.style.left = '';
