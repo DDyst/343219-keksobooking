@@ -14,11 +14,6 @@ pin.js - отрисовка меток объявлений и взаимоде�
   var dialogClose = map.querySelector('.dialog__close');
   var mainPin = map.querySelector('.pin__main');
   var addressInput = document.querySelector('#address');
-  var typeFilter = document.querySelector('#housing_type');
-  var priceFilter = document.querySelector('#housing_price');
-  var roomsFilter = document.querySelector('#housing_room-number');
-  var guestsFilter = document.querySelector('#housing_guests-number');
-  var featuresFilter = document.querySelector('#housing_features');
 
   // Объект с координатами границ перемещения метки при перетаскивании, из учета позиционирования через top и left
   var mapBordersCoordinates = {
@@ -94,28 +89,20 @@ pin.js - отрисовка меток объявлений и взаимоде�
   // Коллбэк, выполняющийся в случае успешной загрузки данных с сервера
   var downloadSuccessHandler = function (data) {
     var pinBoardClickHandler = function (evt) {
-      window.showCard(evt.target, window.pin.activate, data);
+      window.showCard(evt.target, data);
     };
 
     var pinBoardKeyDownHandler = function (evt) {
       if (window.util.isEnterPressed(evt.keyCode)) {
-        window.showCard(evt.target, window.pin.activate, data);
+        window.showCard(evt.target, data);
       }
     };
 
-    var filterChangeHandler = function () {
-      window.debounce(window.pin.update(window.getFiltratedAdvertisements(data)));
-    };
-
     window.pin.renderRandom(data);
+    window.activateFilters(data);
 
     pinBoard.addEventListener('click', pinBoardClickHandler);
     pinBoard.addEventListener('keydown', pinBoardKeyDownHandler);
-    typeFilter.addEventListener('change', filterChangeHandler);
-    priceFilter.addEventListener('change', filterChangeHandler);
-    roomsFilter.addEventListener('change', filterChangeHandler);
-    guestsFilter.addEventListener('change', filterChangeHandler);
-    featuresFilter.addEventListener('change', filterChangeHandler, true);
   };
 
   refreshAddress();

@@ -23,52 +23,71 @@
   var guestsFilter = document.querySelector('#housing_guests-number');
   var featuresFilter = document.querySelector('#housing_features');
 
-  // Функция для фильтрации объявлений по типу
-  var filtrateType = function (advertisement) {
-    return (typeFilter.value === advertisement.offer.type) || (typeFilter.value === ANY_VALUE);
-  };
+  var filtrateFunctions = [
+    // Функция для фильтрации объявлений по типу
+    function (advertisement) {
+      return (typeFilter.value === advertisement.offer.type) || (typeFilter.value === ANY_VALUE);
+    },
 
-  // Функция для фильтрации объявлений по цене
-  var filtratePrice = function (advertisement) {
-    switch (priceFilter.value) {
-      case pricesData.low.VALUE:
-        return advertisement.offer.price < pricesData.low.NUMBER;
-      case pricesData.high.VALUE:
-        return advertisement.offer.price > pricesData.high.NUMBER;
-      case ANY_VALUE:
-        return true;
-      default:
-        return advertisement.offer.price >= pricesData.low.NUMBER && advertisement.offer.price <= pricesData.high.NUMBER;
+    // Функция для фильтрации объявлений по цене
+    function (advertisement) {
+      switch (priceFilter.value) {
+        case pricesData.low.VALUE:
+          return advertisement.offer.price < pricesData.low.NUMBER;
+        case pricesData.high.VALUE:
+          return advertisement.offer.price > pricesData.high.NUMBER;
+        case ANY_VALUE:
+          return true;
+        default:
+          return advertisement.offer.price >= pricesData.low.NUMBER && advertisement.offer.price <= pricesData.high.NUMBER;
+      }
+    },
+
+    // Функция для фильтрации объявлений по количеству комнат
+    function (advertisement) {
+      return (roomsFilter.value === advertisement.offer.rooms.toString()) || (roomsFilter.value === ANY_VALUE);
+    },
+
+    // Функция для фильтрации объявлений по числу гостей
+    function (advertisement) {
+      return (guestsFilter.value === advertisement.offer.guests.toString()) || (guestsFilter.value === ANY_VALUE);
+    },
+
+    // Функция для фильтрации объявлений по доступным удобствам
+    function (advertisement) {
+      var checkedElements = featuresFilter.querySelectorAll('input[type="checkbox"]:checked');
+      var selectedFeatures = [].map.call(checkedElements, function (item) {
+        return item.value;
+      });
+      return selectedFeatures.every(function (currentFeature) {
+        return advertisement.offer.features.includes(currentFeature);
+      });
     }
-  };
-
-  // Функция для фильтрации объявлений по количеству комнат
-  var filtrateRooms = function (advertisement) {
-    return (roomsFilter.value === advertisement.offer.rooms.toString()) || (roomsFilter.value === ANY_VALUE);
-  };
-
-  // Функция для фильтрации объявлений по числу гостей
-  var filtrateGuests = function (advertisement) {
-    return (guestsFilter.value === advertisement.offer.guests.toString()) || (guestsFilter.value === ANY_VALUE);
-  };
-
-  // Функция для фильтрации объявлений по доступным удобствам
-  var filtrateFeatures = function (advertisement) {
-    var checkedElements = featuresFilter.querySelectorAll('input[type="checkbox"]:checked');
-    var selectedFeatures = [].map.call(checkedElements, function (item) {
-      return item.value;
-    });
-    if (selectedFeatures) {
-      var result = selectedFeatures.reduce(function (acc, item) {
-        return acc * advertisement.offer.features.includes(item);
-      }, true);
-      return result;
-    }
-    return true;
-  };
+  ];
 
   // Функция фильтрации исходного массива объявлений
-  window.getFiltratedAdvertisements = function (advertisements) {
-    return advertisements.filter(filtrateType).filter(filtratePrice).filter(filtrateRooms).filter(filtrateGuests).filter(filtrateFeatures);
+  var getFiltratedAdvertisements = function (advertisements) {
+    return advertisements.filter(function (advertisement) {
+      return filtrateFunctions.every(function (currentFunction) {
+        return currentFunction(advertisement);
+      });
+    });
+  };
+
+  // Функция активации фильтров, принимает на вход исходный массив объявлений
+  window.activateFilters = function (advertisements) {
+    var redrawPins = function () {
+      window.pin.update(getFiltratedAdvertisements(advertisements));
+    };
+
+    var filterChangeHandler = function () {
+      window.debounce(redrawPins);
+    };
+
+    typeFilter.addEventListener('change', filterChangeHandler);
+    priceFilter.addEventListener('change', filterChangeHandler);
+    roomsFilter.addEventListener('change', filterChangeHandler);
+    guestsFilter.addEventListener('change', filterChangeHandler);
+    featuresFilter.addEventListener('change', filterChangeHandler, true);
   };
 })();
