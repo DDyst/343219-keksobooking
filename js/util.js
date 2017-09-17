@@ -40,15 +40,6 @@
       array.splice(this.getRandomArrayItemIndex(array), 1);
     },
 
-    // Функция, возвращающая массив случайной длины (но не менее 1) из случайных элементов переданного в неё массива
-    getRandomArrayItems: function (array) {
-      var copiedItems = array.slice();
-      for (var i = 0; i < this.getRandomArrayItemIndex(array); i++) {
-        this.deleteRandomArrayItem(copiedItems);
-      }
-      return copiedItems;
-    },
-
     // Функция, возвращающая массив указанной длины из случайных элементов переданного в неё массива
     getNewArray: function (array, newArrayLength) {
       var copiedItems = array.slice();

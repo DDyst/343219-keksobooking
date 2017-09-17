@@ -7,17 +7,16 @@
   var formFieldsData = {
     TITLE_MIN_LENGTH: 30,
     TITLE_MAX_LENGTH: 100,
-    PRICE_MIN_VALUE: 0,
-    PRICE_MAX_VALUE: 1000000,
+    PRICE_MAX_VALUE: '1000000',
     PRICE_INITIAL_VALUE: '1000'
   };
 
   // Объект с соотношением типа апартаментов и минимальной цены при размещении объявления
   var typeToPriceRelation = {
-    BUNGALO: 0,
-    FLAT: 1000,
-    HOUSE: 10000,
-    PALACE: 10000
+    BUNGALO: '0',
+    FLAT: '1000',
+    HOUSE: '10000',
+    PALACE: '10000'
   };
 
   // Объект с соотношением устанавливаемых значений полей #room_number и #capacity
@@ -55,7 +54,7 @@
     titleInput.minLength = formFieldsData.TITLE_MIN_LENGTH;
     titleInput.maxLength = formFieldsData.TITLE_MAX_LENGTH;
     titleInput.required = true;
-    priceInput.min = formFieldsData.PRICE_MIN_VALUE;
+    priceInput.min = typeToPriceRelation[typeInput.value.toUpperCase()];
     priceInput.max = formFieldsData.PRICE_MAX_VALUE;
     priceInput.value = formFieldsData.PRICE_INITIAL_VALUE;
     priceInput.required = true;
@@ -155,9 +154,6 @@
   var formSubmitHandler = function (evt) {
     evt.preventDefault();
     window.backend.save(new FormData(advertisementForm), window.popUp.uploadSuccessHandler, window.popUp.errorHandler);
-    advertisementForm.reset();
-    setInitialInputAttributes();
-    window.setInitialAddress();
   };
 
   setInitialInputAttributes();
@@ -169,4 +165,11 @@
   roomsInput.addEventListener('change', roomsChangeHandler);
   advertisementForm.addEventListener('invalid', formInvalidHandler, true);
   advertisementForm.addEventListener('submit', formSubmitHandler);
+
+  // Функция для сброса формы к первоначальному состоянию
+  window.resetForm = function () {
+    advertisementForm.reset();
+    setInitialInputAttributes();
+    window.setInitialAddress();
+  };
 })();
