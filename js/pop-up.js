@@ -87,9 +87,10 @@
       showDialog(errorMessage, popUpBorderColor.error);
     },
 
-    // Функция, выводящая окно с сообщением об успешной отправке данных
+    // Функция, выводящая окно с сообщением об успешной отправке данных и сбрасывающая форму к первоначальному состоянию
     uploadSuccessHandler: function () {
       showDialog('Данные успешно отправлены', popUpBorderColor.success);
+      window.resetForm();
     }
   };
 })();
