@@ -30,11 +30,6 @@
       return this.getRandomInRange(0, array.length - 1);
     },
 
-    // Функция, возвращающая случайный элемент массива
-    getRandomArrayItem: function (array) {
-      return array[this.getRandomInRange(0, array.length - 1)];
-    },
-
     // Функция, удаляющая случайный элемент массива
     deleteRandomArrayItem: function (array) {
       array.splice(this.getRandomArrayItemIndex(array), 1);
